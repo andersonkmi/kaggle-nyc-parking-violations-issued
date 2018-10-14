@@ -13,5 +13,14 @@ object Main {
     logger.info("Processing Kaggle NYC Parking violations data set")
 
     val sparkSession: SparkSession = SparkSession.builder.appName("kaggle-nyc-parking-violations").master("local[*]").getOrCreate()
+
+    val df = ParkingViolationsDataHandler.readContents("parking-violations-issued-fiscal-year-2018.csv", sparkSession)
+
+    df.printSchema()
+    df.show(20)
+
+    val renamedDF = df.toDF(ParkingViolationsDataHandler.ColumnNames: _*)
+    renamedDF.printSchema()
+    renamedDF.show(20)
   }
 }

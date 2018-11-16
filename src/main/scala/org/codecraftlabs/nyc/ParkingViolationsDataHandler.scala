@@ -51,12 +51,12 @@ object ParkingViolationsDataHandler {
     "doubleParkingViolation")
 
   def readContents(file: String, session: SparkSession): DataFrame = {
-    //session.read.format("com.databricks.spark.csv").schema(getSchema(ColumnNames.toList)).option("header", "true").option("delimiter", ",").load(file)
-    session.read.format("com.databricks.spark.csv").option("header", "true").load(file)
+    session.read.format("com.databricks.spark.csv").schema(getSchema(ColumnNames.toList)).option("header", "true").option("delimiter", ",").load(file)
+    //session.read.format("com.databricks.spark.csv").option("header", "true").load(file)
   }
 
   private def getSchema(colNames: List[String]): StructType = {
-    val summonsNumberField = StructField(colNames(0), LongType, nullable = true)
+    val summonsNumberField = StructField(colNames.head, LongType, nullable = true)
     val plateIdField = StructField(colNames(1), StringType, nullable = true)
     val registrationStateField = StructField(colNames(2), StringType, nullable = true)
     val plateTypeField = StructField(colNames(3), StringType, nullable = true)

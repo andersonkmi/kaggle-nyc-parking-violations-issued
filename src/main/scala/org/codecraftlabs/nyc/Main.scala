@@ -5,6 +5,8 @@ import org.apache.log4j.Logger
 import org.apache.spark.sql.{Column, SparkSession}
 import org.codecraftlabs.nyc.ParkingViolationsDataHandler.{ColumnNames, readContents}
 import org.codecraftlabs.nyc.data.ParkingViolation
+import org.codecraftlabs.nyc.utils.DataUtils
+import org.codecraftlabs.nyc.utils.DataUtils.saveDataFrameToCsv
 
 object Main {
   def main(args: Array[String]): Unit = {
@@ -47,8 +49,5 @@ object Main {
     val removedNullsDF = filteredDF.filter(filteredDF.col("summonsNumber").isNotNull)
 
     val violations = removedNullsDF.as[ParkingViolation]
-    violations.show(200)
-
-    println(violations.count())
   }
 }

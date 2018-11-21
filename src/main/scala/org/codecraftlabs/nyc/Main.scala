@@ -2,11 +2,9 @@ package org.codecraftlabs.nyc
 
 import org.apache.log4j.Level.OFF
 import org.apache.log4j.Logger
-import org.apache.spark.sql.{Column, SparkSession}
+import org.apache.spark.sql.{Column, Dataset, SparkSession}
 import org.codecraftlabs.nyc.ParkingViolationsDataHandler.{ColumnNames, readContents}
 import org.codecraftlabs.nyc.data.ParkingViolation
-import org.codecraftlabs.nyc.utils.DataUtils
-import org.codecraftlabs.nyc.utils.DataUtils.saveDataFrameToCsv
 
 object Main {
   def main(args: Array[String]): Unit = {
@@ -48,6 +46,11 @@ object Main {
     val filteredDF = resultingDF.select(df1.columns.filter(colName => colsToKeep.contains(colName)).map(colName => new Column(colName)): _*)
     val removedNullsDF = filteredDF.filter(filteredDF.col("summonsNumber").isNotNull)
 
-    val violations = removedNullsDF.as[ParkingViolation]
+    val violations: Dataset[ParkingViolation] = removedNullsDF.map {
+      row => ParkingViolation(row.getAs[Long](0), row.getAs[String](1), row.getAs[String](2), row.getAs[String](3), row.getAs[String](4), row.getAs[Int](5), row.getAs[String](6), row.getAs[String](7), row.getAs[String](8), row.getAs[String](9), row.getAs[String](10), row.getAs[Int](11))
+    }
+
+    val byPlateType = violations.groupBy("plateType").count()
+    byPlateType.printSchema()
   }
 }

@@ -12,3 +12,5 @@ case class ParkingViolation(summonsNumber: Long,
                             vehicleColor: String,
                             violationTime: String,
                             vehicleYear: Int)
+
+case class ByPlateIdCount(plateType: String, count: Long)

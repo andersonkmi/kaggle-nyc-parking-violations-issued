@@ -46,11 +46,10 @@ object Main {
     val filteredDF = resultingDF.select(df1.columns.filter(colName => colsToKeep.contains(colName)).map(colName => new Column(colName)): _*)
     val removedNullsDF = filteredDF.filter(filteredDF.col("summonsNumber").isNotNull)
 
-    val violations: Dataset[ParkingViolation] = removedNullsDF.map {
-      row => ParkingViolation(row.getAs[Long](0), row.getAs[String](1), row.getAs[String](2), row.getAs[String](3), row.getAs[String](4), row.getAs[Int](5), row.getAs[String](6), row.getAs[String](7), row.getAs[String](8), row.getAs[String](9), row.getAs[String](10), row.getAs[Int](11))
-    }
+    val violations: Dataset[ParkingViolation] = removedNullsDF.as[ParkingViolation]
 
-    val byPlateType = violations.groupBy("plateType").count()
+    val byPlateType = DataTransformationUtil.getCountByPlateType(violations, sparkSession)
+    byPlateType.show(100)
     byPlateType.printSchema()
   }
 }

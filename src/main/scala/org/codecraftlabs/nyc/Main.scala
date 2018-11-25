@@ -7,7 +7,6 @@ import org.apache.spark.sql.{Column, Dataset, SparkSession}
 import org.codecraftlabs.nyc.ParkingViolationsDataHandler.{ColumnNames, readContents}
 import org.codecraftlabs.nyc.data.ParkingViolation
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.types._
 
 object Main {
   def main(args: Array[String]): Unit = {
@@ -48,11 +47,17 @@ object Main {
 
     val filteredDF = resultingDF.select(df1.columns.filter(colName => colsToKeep.contains(colName)).map(colName => new Column(colName)): _*)
     val removedNullsDF = filteredDF.filter(filteredDF.col("summonsNumber").isNotNull)
-    val modifiedDF = removedNullsDF.withColumn("issueDateTemp", unix_timestamp(removedNullsDF.col("issueDate"), "yyyy-MM-dd").cast(TimestampType)).drop("issueDate").withColumnRenamed("issueDateTemp", "issueDate")
-    val violations: Dataset[ParkingViolation] = modifiedDF.as[ParkingViolation]
+    val modifiedDF = removedNullsDF.withColumn("issueDateTemp", unix_timestamp(removedNullsDF.col("issueDate"), "yyyy-MM-dd").cast(TimestampType))
+      .drop("issueDate")
+      .withColumnRenamed("issueDateTemp", "issueDate")
+
+    val addedCols = modifiedDF
+      .withColumn("issueDayMonth", dayofmonth(modifiedDF.col("issueDate")))
+      .withColumn("issueMonth", month(modifiedDF.col("issueDate")))
+      .withColumn("issueYear", year(modifiedDF.col("issueDate")))
+    val violations: Dataset[ParkingViolation] = addedCols.as[ParkingViolation]
 
     val byPlateType = DataTransformationUtil.getCountByPlateType(violations, sparkSession)
     byPlateType.show(100)
-    byPlateType.printSchema()
   }
 }

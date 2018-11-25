@@ -1,10 +1,12 @@
 package org.codecraftlabs.nyc.data
 
+import java.sql.Timestamp
+
 case class ParkingViolation(summonsNumber: Long,
                             plateId: String,
                             registrationState: String,
                             plateType: String,
-                            issueDate: String,
+                            issueDate: Timestamp,
                             violationCode: Int,
                             vehicleBodyType: String,
                             vehicleMake: String,

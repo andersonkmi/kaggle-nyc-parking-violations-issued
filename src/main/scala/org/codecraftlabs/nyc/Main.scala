@@ -57,6 +57,10 @@ object Main {
       .withColumn("issueYear", year(modifiedDF.col("issueDate")))
     val violations: Dataset[ParkingViolation] = addedCols.as[ParkingViolation]
 
+    // Split violations by year
+    val violations2018 = violations.filter("issueYear == 2018")
+    println(violations2018.count())
+    
     val byPlateType = DataTransformationUtil.getCountByPlateType(violations, sparkSession)
     byPlateType.show(100)
   }

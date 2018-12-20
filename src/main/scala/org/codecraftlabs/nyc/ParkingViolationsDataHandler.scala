@@ -52,7 +52,6 @@ object ParkingViolationsDataHandler {
 
   def readContents(file: String, session: SparkSession): DataFrame = {
     session.read.format("com.databricks.spark.csv").schema(getSchema(ColumnNames.toList)).option("header", "true").option("delimiter", ",").load(file)
-    //session.read.format("com.databricks.spark.csv").option("header", "true").load(file)
   }
 
   private def getSchema(colNames: List[String]): StructType = {
@@ -147,4 +146,31 @@ object ParkingViolationsDataHandler {
 
     StructType(fields)
   }
+
+  def readPlatesContent(file: String, session: SparkSession): DataFrame = {
+    val cols = List("plateType", "description")
+    session.read.format("com.databricks.spark.csv").schema(getPlatesSchema(cols)).option("header", "true").option("delimiter", ",").load(file)
+  }
+
+  private def getPlatesSchema(columnNames: List[String]): StructType = {
+    val plateType = StructField(columnNames.head, StringType, nullable = true)
+    val description = StructField(columnNames(1), StringType, nullable = true)
+
+    val fieldList = List(plateType, description)
+    StructType(fieldList)
+  }
+
+  def readStatesContent(file: String, session: SparkSession): DataFrame = {
+    val cols = List("code", "state")
+    session.read.format("com.databricks.spark.csv").schema(getStatesSchema(cols)).option("header", "true").option("delimiter", ",").load(file)
+  }
+
+  private def getStatesSchema(columnNames: List[String]): StructType = {
+    val code = StructField(columnNames.head, StringType, nullable = true)
+    val state = StructField(columnNames(1), StringType, nullable = true)
+
+    val fieldList = List(code, state)
+    StructType(fieldList)
+  }
+
 }

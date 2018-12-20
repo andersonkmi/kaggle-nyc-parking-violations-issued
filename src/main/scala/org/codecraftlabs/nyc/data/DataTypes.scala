@@ -19,3 +19,7 @@ case class ParkingViolation(summonsNumber: Long,
                             issueYear: Int)
 
 case class ByPlateIdCount(plateType: String, count: Long)
+
+case class PlateType(plateType: String, description: String)
+
+case class State(code: String, state: String)

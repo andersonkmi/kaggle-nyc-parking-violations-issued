@@ -4,8 +4,8 @@ import org.apache.log4j.Level.OFF
 import org.apache.log4j.Logger
 import org.apache.spark.sql.types.TimestampType
 import org.apache.spark.sql.{Column, Dataset, SparkSession}
-import org.codecraftlabs.nyc.ParkingViolationsDataHandler.{ColumnNames, readContents}
-import org.codecraftlabs.nyc.data.ParkingViolation
+import org.codecraftlabs.nyc.ParkingViolationsDataHandler.{ColumnNames, readContents, readPlatesContent, readStatesContent}
+import org.codecraftlabs.nyc.data.{ParkingViolation, PlateType, State}
 import org.apache.spark.sql.functions._
 
 object Main {
@@ -18,6 +18,14 @@ object Main {
 
     val sparkSession: SparkSession = SparkSession.builder.appName("kaggle-nyc-parking-violations").master("local[*]").getOrCreate()
     import sparkSession.implicits._
+
+    val plateTypeDS = readPlatesContent("plates.csv", sparkSession).as[PlateType]
+    plateTypeDS.show(100)
+    plateTypeDS.printSchema()
+
+    val stateDS = readStatesContent("states.csv", sparkSession).as[State]
+    stateDS.show(100)
+    stateDS.printSchema()
 
     val df1 = readContents("parking-violations-issued-fiscal-year-2018.csv", sparkSession)
     val renamedDF = df1.toDF(ColumnNames: _*)
@@ -60,7 +68,7 @@ object Main {
     // Split violations by year
     val violations2018 = violations.filter("issueYear == 2018")
     println(violations2018.count())
-    
+
     val byPlateType = DataTransformationUtil.getCountByPlateType(violations, sparkSession)
     byPlateType.show(100)
   }

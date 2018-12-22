@@ -10,6 +10,5 @@ tmp/*
 .*.sw?
 .idea/
 target/
-*.csv
 *.parquet
 *.jar

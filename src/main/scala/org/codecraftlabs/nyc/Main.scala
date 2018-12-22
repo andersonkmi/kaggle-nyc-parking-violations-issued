@@ -9,6 +9,8 @@ import org.codecraftlabs.nyc.data.{ParkingViolation, PlateType, State}
 import org.apache.spark.sql.functions._
 import org.codecraftlabs.nyc.DataTransformationUtil.getCountByPlateType
 import org.codecraftlabs.nyc.utils.Timer.{timed, timing}
+import scala.io.Source._
+import org.json4s.jackson.JsonMethods.parse
 
 object Main {
   def main(args: Array[String]): Unit = {

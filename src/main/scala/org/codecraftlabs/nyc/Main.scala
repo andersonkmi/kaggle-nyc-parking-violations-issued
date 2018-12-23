@@ -8,9 +8,8 @@ import org.codecraftlabs.nyc.ParkingViolationsDataHandler.{ColumnNames, readCont
 import org.codecraftlabs.nyc.data.{ParkingViolation, PlateType, State}
 import org.apache.spark.sql.functions._
 import org.codecraftlabs.nyc.DataTransformationUtil.getCountByPlateType
+import org.codecraftlabs.nyc.utils.NYCOpenDataUtils
 import org.codecraftlabs.nyc.utils.Timer.{timed, timing}
-import scala.io.Source._
-import org.json4s.jackson.JsonMethods.parse
 
 object Main {
   def main(args: Array[String]): Unit = {
@@ -22,6 +21,13 @@ object Main {
 
     val sparkSession: SparkSession = SparkSession.builder.appName("kaggle-nyc-parking-violations").master("local[*]").getOrCreate()
     import sparkSession.implicits._
+
+    logger.info("Calling API")
+    val violationCodes = NYCOpenDataUtils.getViolationCodeJsonArray()
+    if (violationCodes.isDefined) {
+      logger.info("Printing contents")
+      violationCodes.get.foreach(println)
+    }
 
     val plateTypeDS = timed("Reading plates.csv contents and converting its data frame to data set", readPlatesContent("plates.csv", sparkSession).as[PlateType])
     plateTypeDS.show(100)

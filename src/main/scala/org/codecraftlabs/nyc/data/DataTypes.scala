@@ -23,3 +23,5 @@ case class ByPlateIdCount(plateType: String, count: Long)
 case class PlateType(plateType: String, description: String)
 
 case class State(code: String, state: String)
+
+case class ViolationCode (code: String, definition: String)

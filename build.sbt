@@ -10,7 +10,7 @@ val appName = "kaggle-nyc-parking-violations-issued"
 
 version := appVersion
 
-scalaVersion := "2.12.7"
+scalaVersion := "2.12.8"
 
 resolvers += Classpaths.typesafeReleases
 
@@ -20,5 +20,6 @@ libraryDependencies ++= Seq(
   "org.json4s" % "json4s-jackson_2.12" % "3.6.2",
   "com.amazonaws" % "aws-java-sdk-s3" % "1.11.401",
   "com.databricks" % "spark-csv_2.11" % "1.5.0",
+  "org.scala-lang.modules" % "scala-xml_2.12" % "1.1.1",
   scalaTest % Test
 )

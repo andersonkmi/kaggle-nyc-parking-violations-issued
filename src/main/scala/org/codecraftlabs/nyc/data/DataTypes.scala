@@ -24,4 +24,6 @@ case class PlateType(plateType: String, description: String)
 
 case class State(code: String, state: String)
 
-case class ViolationCode (code: String, definition: String)
+case class OriginalViolationCode (code: String, definition: String)
+
+case class ViolationCode (code: Int, definition: String)

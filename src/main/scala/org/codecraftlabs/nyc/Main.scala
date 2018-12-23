@@ -2,14 +2,14 @@ package org.codecraftlabs.nyc
 
 import org.apache.log4j.Level.OFF
 import org.apache.log4j.Logger
-import org.apache.spark.sql.types.TimestampType
+import org.apache.spark.sql.types.{IntegerType, TimestampType}
 import org.apache.spark.sql.{Column, Dataset, SparkSession}
 import org.codecraftlabs.nyc.ParkingViolationsDataHandler.{ColumnNames, readContents, readPlatesContent, readStatesContent}
-import org.codecraftlabs.nyc.data.{ParkingViolation, PlateType, State}
+import org.codecraftlabs.nyc.data.{ParkingViolation, PlateType, State, ViolationCode}
 import org.apache.spark.sql.functions._
 import org.codecraftlabs.nyc.DataTransformationUtil.getCountByPlateType
-import org.codecraftlabs.nyc.utils.NYCOpenDataUtils
 import org.codecraftlabs.nyc.utils.Timer.{timed, timing}
+import org.codecraftlabs.nyc.utils.NYCOpenDataUtils.getViolationCodeJsonArray
 
 object Main {
   def main(args: Array[String]): Unit = {
@@ -22,12 +22,10 @@ object Main {
     val sparkSession: SparkSession = SparkSession.builder.appName("kaggle-nyc-parking-violations").master("local[*]").getOrCreate()
     import sparkSession.implicits._
 
-    logger.info("Calling API")
-    val violationCodes = NYCOpenDataUtils.getViolationCodeJsonArray()
-    if (violationCodes.isDefined) {
-      logger.info("Printing contents")
-      violationCodes.get.foreach(println)
-    }
+    val violationCodesJsonArray = getViolationCodeJsonArray()
+    val violationCodesDF = sparkSession.createDataFrame(violationCodesJsonArray)
+    val violationCodeModDF = violationCodesDF.withColumn("violationCodeNumber", violationCodesDF.col("code").cast(IntegerType)).drop("code").withColumnRenamed("violationCodeNumber", "code")
+    val violationCodeDS : Dataset[ViolationCode] = violationCodeModDF.as[ViolationCode]
 
     val plateTypeDS = timed("Reading plates.csv contents and converting its data frame to data set", readPlatesContent("plates.csv", sparkSession).as[PlateType])
     plateTypeDS.show(100)

@@ -28,19 +28,15 @@ object Main {
       import sparkSession.implicits._
 
       logger.info("Loading the violation codes information from NYC Open data API")
-      val violationCodesJsonArray = getViolationCodeJsonArray(argsMap(AppToken))
-      val violationCodesDF = sparkSession.createDataFrame(violationCodesJsonArray)
-      val violationCodeModDF = violationCodesDF.withColumn("violationCodeNumber", violationCodesDF.col("code").cast(IntegerType)).drop("code").drop("all_other_areas").drop("manhattan_96th_st_below").withColumnRenamed("violationCodeNumber", "code")
-      val violationCodeDS : Dataset[ViolationCode] = violationCodeModDF.as[ViolationCode]
-      violationCodeDS.show(10)
+      val violationCodesJsonArray = timed("Retrieving violation codes from NYC open data API", getViolationCodeJsonArray(argsMap(AppToken)))
+      val violationCodesDF = timed("Creating a data frame from the JSON array", sparkSession.createDataFrame(violationCodesJsonArray))
+      val violationCodeModDF = timed("Converting code column from string to int", violationCodesDF.withColumn("violationCodeNumber", violationCodesDF.col("code").cast(IntegerType)).drop("code").drop("all_other_areas").drop("manhattan_96th_st_below").withColumnRenamed("violationCodeNumber", "code"))
+      val violationCodeDS : Dataset[ViolationCode] = timed("Creating a dataset from the data frame", violationCodeModDF.as[ViolationCode])
 
       val plateTypeDS = timed("Reading plates.csv contents and converting its data frame to data set", readPlatesContent("plates.csv", sparkSession).as[PlateType])
-      plateTypeDS.show(100)
-      plateTypeDS.printSchema()
 
       val stateDS = timed("Reading states.csv contents and converting the data frame to data set", readStatesContent("states.csv", sparkSession).as[State])
-      stateDS.show(100)
-      stateDS.printSchema()
+
 
       val df1 = timed("Reading parking-violations-issued-fiscal-year-2018.csv contents", readContents("parking-violations-issued-fiscal-year-2018.csv", sparkSession))
       val renamedDF = df1.toDF(ColumnNames: _*)

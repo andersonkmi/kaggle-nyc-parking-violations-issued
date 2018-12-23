@@ -1,14 +1,14 @@
 package org.codecraftlabs.nyc.utils
 
-import org.codecraftlabs.nyc.data.OriginalViolationCode
+import org.codecraftlabs.nyc.data.ViolationCodeJson
 import org.json4s.jackson.JsonMethods.parse
 
 object NYCOpenDataUtils {
   private implicit val formats = org.json4s.DefaultFormats
 
-  def getViolationCodeJsonArray(): Array[OriginalViolationCode] = {
+  def getViolationCodeJsonArray(): Array[ViolationCodeJson] = {
     doGet("https://data.cityofnewyork.us/resource/dbw3-ymb4.json") match {
-      case Some(contents) => parse(contents).extract[Array[OriginalViolationCode]]
+      case Some(contents) => parse(contents).extract[Array[ViolationCodeJson]]
       case None => Array()
     }
   }

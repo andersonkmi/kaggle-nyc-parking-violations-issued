@@ -13,7 +13,6 @@ object NYCOpenDataUtils {
     }
   }
 
-
   private def doGet(url: String) : Option[String] = {
     try {
       val content = RestUtils.get(url)

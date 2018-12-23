@@ -22,9 +22,10 @@ object Main {
     val sparkSession: SparkSession = SparkSession.builder.appName("kaggle-nyc-parking-violations").master("local[*]").getOrCreate()
     import sparkSession.implicits._
 
+    logger.info("Loading the violation codes information from NYC Open data API")
     val violationCodesJsonArray = getViolationCodeJsonArray()
     val violationCodesDF = sparkSession.createDataFrame(violationCodesJsonArray)
-    val violationCodeModDF = violationCodesDF.withColumn("violationCodeNumber", violationCodesDF.col("code").cast(IntegerType)).drop("code").withColumnRenamed("violationCodeNumber", "code")
+    val violationCodeModDF = violationCodesDF.withColumn("violationCodeNumber", violationCodesDF.col("code").cast(IntegerType)).drop("code").drop("all_other_areas").drop("manhattan_96th_st_below").withColumnRenamed("violationCodeNumber", "code")
     val violationCodeDS : Dataset[ViolationCode] = violationCodeModDF.as[ViolationCode]
 
     val plateTypeDS = timed("Reading plates.csv contents and converting its data frame to data set", readPlatesContent("plates.csv", sparkSession).as[PlateType])

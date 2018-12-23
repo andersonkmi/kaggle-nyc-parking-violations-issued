@@ -2,6 +2,8 @@ package org.codecraftlabs.nyc.data
 
 import java.sql.Timestamp
 
+case class ParkingViolationJson()
+
 case class ParkingViolation(summonsNumber: Long,
                             plateId: String,
                             registrationState: String,
@@ -24,6 +26,6 @@ case class PlateType(plateType: String, description: String)
 
 case class State(code: String, state: String)
 
-case class OriginalViolationCode (code: String, definition: String)
+case class OriginalViolationCode (all_other_areas: String, code: String, definition: String, manhattan_96th_st_below: String)
 
 case class ViolationCode (code: Int, definition: String)

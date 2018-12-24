@@ -78,7 +78,7 @@ object Main {
         .withColumn("issueYear", year(modifiedDF.col("issueDate"))))
 
       val colsForNullHandling = Seq("violationDescription")
-      val naHandledDF = addedCols.na.fill("No description", colsForNullHandling)
+      val naHandledDF = addedCols.na.fill("NA", colsForNullHandling)
 
       val violations: Dataset[ParkingViolation] = naHandledDF.as[ParkingViolation]
       violations.show(5000)

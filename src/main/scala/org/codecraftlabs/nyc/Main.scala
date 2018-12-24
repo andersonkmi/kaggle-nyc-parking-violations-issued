@@ -66,17 +66,20 @@ object Main {
       val violationsDataFrame = timed("Reading all parking violations", readContents(s"$dataFolder/*.csv", sparkSession))
       val resultingDF = violationsDataFrame.toDF(ColumnNames: _*)
 
+      logger.info("Filtering only columns to be used")
       val filteredDF = timed("Filtering only the desired columns to be used later", resultingDF.select(resultingDF.columns.filter(colName => columnsToFilter.contains(colName)).map(colName => new Column(colName)): _*))
       val removedNullsDF = timed("Removing rows where the summons number is null", filteredDF.filter(filteredDF.col("summonsNumber").isNotNull))
       val modifiedDF = timed("Converting the timestamp field from string to timestamp", removedNullsDF.withColumn("issueDateTemp", unix_timestamp(removedNullsDF.col("issueDate"), "MM/dd/yyyy").cast(TimestampType))
         .drop("issueDate")
         .withColumnRenamed("issueDateTemp", "issueDate"))
 
+      logger.info("Adding columns for year, month and date")
       val addedCols = timed("Adding specific columns for year, month and date", modifiedDF
         .withColumn("issueDayMonth", dayofmonth(modifiedDF.col("issueDate")))
         .withColumn("issueMonth", month(modifiedDF.col("issueDate")))
         .withColumn("issueYear", year(modifiedDF.col("issueDate"))))
 
+      logger.info("Treating null value for violation description column")
       val colsForNullHandling = Seq("violationDescription")
       val naHandledDF = addedCols.na.fill("NA", colsForNullHandling)
 
@@ -84,10 +87,11 @@ object Main {
       violations.show(5000)
 
       // Split violations by year
-      val violations2018 = timed("Filtering violations by year 2018", violations.filter("issueYear == 2018"))
+      val violations2018 = timed("Filtering violations by year 2018", DataTransformationUtil.filterByYear(violations, 2018, sparkSession))
       timed("Counting rows", println(violations2018.count()))
 
-      val byPlateType = timed("Counting violations by plate type", getCountByPlateType(violations, sparkSession))
+      // Counting violations per plate type
+      val byPlateType = timed("Counting violations by plate type", getCountByPlateType(violations, plateTypeDS, sparkSession))
       byPlateType.show(100)
 
       println(timing)

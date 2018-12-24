@@ -88,13 +88,12 @@ object Main {
 
       // Split violations by year
       val violations2019 = timed("Filtering violations by year 2019", filterByYear(violations, 2019, sparkSession))
-      //logger.info(s"Total violations in FY 2019: ${violations2019.count()}")
-
       val violations2018 = timed("Filtering violations by year 2018", filterByYear(violations, 2018, sparkSession))
-      //logger.info(s"Total violations in FY 2018: ${violations2018.count()}")
-
       val violations2017 = timed("Filtering violations by year 2017", filterByYear(violations, 2017, sparkSession))
-      //logger.info(s"Total violations in FY 2017: ${violations2017.count()}")
+      val violations2016 = timed("Filtering violations by year 2016", filterByYear(violations, 2016, sparkSession))
+      val violations2015 = timed("Filtering violations by year 2015", filterByYear(violations, 2015, sparkSession))
+      val violations2014 = timed("Filtering violations by year 2014", filterByYear(violations, 2014, sparkSession))
+
 
       // Counting violations per plate type
       val byPlateType = timed("Counting violations by plate type", getCountByPlateType(violations, plateTypeDS, sparkSession))

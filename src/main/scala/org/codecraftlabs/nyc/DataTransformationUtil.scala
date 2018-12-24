@@ -9,12 +9,10 @@ object DataTransformationUtil {
 
   def getCountByPlateType(ds: Dataset[ParkingViolation], plateTypeDS: Dataset[PlateType], sparkSession: SparkSession): Dataset[ByPlateTypeCount] = {
     import sparkSession.implicits._
-    val colNames = Seq("count", "plateType")
-    val df = ds.groupBy("plateType").count()
-    val plateDF = plateTypeDS.toDF()
-    val resultingDF = df.join(plateDF, Seq("plateType"))
-    val finalDF = resultingDF.drop("plateType").toDF(colNames: _*)
-    finalDF.as[ByPlateTypeCount]
+    val joinedDS = ds.join(plateTypeDS, Seq("plateType"))
+    val df = joinedDS.groupBy("description").count()
+    val renamedDF = df.toDF(Seq("plateType", "count"): _*)
+    renamedDF.as[ByPlateTypeCount]
   }
 
   def filterByYear(ds: Dataset[ParkingViolation], year: Int, sparkSession: SparkSession): Dataset[ParkingViolation] = {

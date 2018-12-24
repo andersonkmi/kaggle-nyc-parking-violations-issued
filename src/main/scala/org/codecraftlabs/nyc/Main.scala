@@ -92,7 +92,7 @@ object Main {
 
       // Counting violations per plate type
       val byPlateType = timed("Counting violations by plate type", getCountByPlateType(violations, plateTypeDS, sparkSession))
-      byPlateType.show(100)
+      byPlateType.coalesce(1).write.mode("overwrite").json("violation_by_plate_type_all.json")
 
       println(timing)
     } else {

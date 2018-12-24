@@ -12,3 +12,4 @@ tmp/*
 target/
 *.parquet
 *.jar
+*.json

@@ -6,7 +6,7 @@ import org.apache.spark.sql.{Column, Dataset, SparkSession}
 import org.codecraftlabs.nyc.ParkingViolationsDataHandler.{ColumnNames, readContents, readPlatesContent, readStatesContent}
 import org.codecraftlabs.nyc.data.{ParkingViolation, PlateType, State, ViolationCode}
 import org.apache.spark.sql.functions._
-import org.codecraftlabs.nyc.DataTransformationUtil.getCountByPlateType
+import org.codecraftlabs.nyc.DataTransformationUtil.{filterByYear, getCountByPlateType}
 import org.codecraftlabs.nyc.utils.ArgsUtils.parseArgs
 import org.codecraftlabs.nyc.utils.Timer.{timed, timing}
 import org.codecraftlabs.nyc.utils.NYCOpenDataUtils.getViolationCodeJsonArray
@@ -87,12 +87,20 @@ object Main {
       violations.show(5000)
 
       // Split violations by year
-      val violations2018 = timed("Filtering violations by year 2018", DataTransformationUtil.filterByYear(violations, 2018, sparkSession))
-      timed("Counting rows", println(violations2018.count()))
+      val violations2019 = timed("Filtering violations by year 2019", filterByYear(violations, 2019, sparkSession))
+      //logger.info(s"Total violations in FY 2019: ${violations2019.count()}")
+
+      val violations2018 = timed("Filtering violations by year 2018", filterByYear(violations, 2018, sparkSession))
+      //logger.info(s"Total violations in FY 2018: ${violations2018.count()}")
+
+      val violations2017 = timed("Filtering violations by year 2017", filterByYear(violations, 2017, sparkSession))
+      //logger.info(s"Total violations in FY 2017: ${violations2017.count()}")
 
       // Counting violations per plate type
       val byPlateType = timed("Counting violations by plate type", getCountByPlateType(violations, plateTypeDS, sparkSession))
-      byPlateType.coalesce(1).write.mode("overwrite").json("violation_by_plate_type_all.json")
+      val byPlateTypeSorted = byPlateType.sort(byPlateType.col("count"))
+      byPlateTypeSorted.show(100)
+      byPlateTypeSorted.coalesce(1).write.mode("overwrite").json("violation_by_plate_type_all.json")
 
       println(timing)
     } else {

@@ -14,40 +14,68 @@ import org.codecraftlabs.nyc.utils.NYCOpenDataUtils.getViolationCodeJsonArray
 
 object Main {
   private val AppToken: String = "--app-token"
+  private val CsvFolder: String = "--csv-folder"
 
   def main(args: Array[String]): Unit = {
     @transient lazy val logger = Logger.getLogger(getClass.getName)
-    Logger.getLogger("org.apache").setLevel(OFF)
+    //Logger.getLogger("org.apache").setLevel(OFF)
 
     if (args.nonEmpty) {
       logger.info("Processing Kaggle NYC Parking violations data set")
 
       val argsMap = parseArgs(args)
+      val csvFolder = argsMap(CsvFolder)
+      val appToken = argsMap(AppToken)
 
       val sparkSession: SparkSession = SparkSession.builder.appName("kaggle-nyc-parking-violations").master("local[*]").getOrCreate()
       import sparkSession.implicits._
 
       logger.info("Loading the violation codes information from NYC Open data API")
-      val violationCodesJsonArray = timed("Retrieving violation codes from NYC open data API", getViolationCodeJsonArray(argsMap(AppToken)))
+      val violationCodesJsonArray = timed("Retrieving violation codes from NYC open data API", getViolationCodeJsonArray(appToken))
       val violationCodesDF = timed("Creating a data frame from the JSON array", sparkSession.createDataFrame(violationCodesJsonArray))
       val violationCodeModDF = timed("Converting code column from string to int", violationCodesDF.withColumn("violationCodeNumber", violationCodesDF.col("code").cast(IntegerType)).drop("code").drop("all_other_areas").drop("manhattan_96th_st_below").withColumnRenamed("violationCodeNumber", "code"))
       val violationCodeDS : Dataset[ViolationCode] = timed("Creating a dataset from the data frame", violationCodeModDF.as[ViolationCode])
+      violationCodeDS.show(10)
 
-      val plateTypeDS = timed("Reading plates.csv contents and converting its data frame to data set", readPlatesContent("plates.csv", sparkSession).as[PlateType])
+      logger.info("Loading plates.csv data set")
+      val plateTypeDS = timed("Reading plates.csv contents and converting its data frame to data set", readPlatesContent(s"$csvFolder/plates.csv", sparkSession).as[PlateType])
+      plateTypeDS.show(10)
 
-      val stateDS = timed("Reading states.csv contents and converting the data frame to data set", readStatesContent("states.csv", sparkSession).as[State])
+      logger.info("Loading state.csv data set")
+      val stateDS = timed("Reading states.csv contents and converting the data frame to data set", readStatesContent(s"$csvFolder/states.csv", sparkSession).as[State])
+      stateDS.show(10)
 
+      logger.info("Loading parking violations FY 2019 and transforming it")
+      val violations2019DataFrame = timed("Reading parking-violations-issued-fiscal-year-2019.csv contents", readContents(s"$csvFolder/parking-violations-issued-fiscal-year-2019.csv", sparkSession))
+      val violations2019DataFrameRenamedCols = violations2019DataFrame.toDF(ColumnNames: _*)
 
-      val df1 = timed("Reading parking-violations-issued-fiscal-year-2018.csv contents", readContents("parking-violations-issued-fiscal-year-2018.csv", sparkSession))
-      val renamedDF = df1.toDF(ColumnNames: _*)
+      logger.info("Loading parking violations FY 2018 and transforming it")
+      val violations2018DataFrame = timed("Reading parking-violations-issued-fiscal-year-2018.csv contents", readContents(s"$csvFolder/parking-violations-issued-fiscal-year-2018.csv", sparkSession))
+      val violations2018DataFrameRenamedCols = violations2018DataFrame.toDF(ColumnNames: _*)
 
-      val df2 = timed("Reading parking-violations-issued-fiscal-year-2016.csv contents", readContents("parking-violations-issued-fiscal-year-2016.csv", sparkSession))
-      val renamedDF2 = df2.toDF(ColumnNames: _*)
+      logger.info("Loading parking violations FY 2017 and transforming it")
+      val violations2017DataFrame = timed("Reading parking-violations-issued-fiscal-year-2017.csv contents", readContents(s"$csvFolder/parking-violations-issued-fiscal-year-2017.csv", sparkSession))
+      val violations2017DataFrameRenamedCols = violations2017DataFrame.toDF(ColumnNames: _*)
 
-      val df3 = timed("Reading parking-violations-issued-fiscal-year-2014.csv contents", readContents("parking-violations-issued-fiscal-year-2014.csv", sparkSession))
-      val renamedDF3 = df3.toDF(ColumnNames: _*)
+      logger.info("Loading parking violations FY 2016 and transforming it")
+      val violations2016DataFrame = timed("Reading parking-violations-issued-fiscal-year-2016.csv contents", readContents(s"$csvFolder/parking-violations-issued-fiscal-year-2016.csv", sparkSession))
+      val violations2016DataFrameRenamedCols = violations2016DataFrame.toDF(ColumnNames: _*)
 
-      val resultingDF = timed("Executing union on all three data frames loaded", renamedDF.union(renamedDF2).union(renamedDF3))
+      logger.info("Loading parking violations FY 2015 and transforming it")
+      val violations2015DataFrame = timed("Reading parking-violations-issued-fiscal-year-2015.csv contents", readContents(s"$csvFolder/parking-violations-issued-fiscal-year-2015.csv", sparkSession))
+      val violations2015DataFrameRenamedCols = violations2015DataFrame.toDF(ColumnNames: _*)
+
+      logger.info("Loading parking violations FY 2014 and transforming it")
+      val violations2014DataFrame = timed("Reading parking-violations-issued-fiscal-year-2014.csv contents", readContents(s"$csvFolder/parking-violations-issued-fiscal-year-2014.csv", sparkSession))
+      val violations2014DataFrameRenamedCols = violations2014DataFrame.toDF(ColumnNames: _*)
+
+      val resultingDF = timed("Executing union on all loaded data frames",
+        violations2014DataFrameRenamedCols
+          .union(violations2015DataFrameRenamedCols)
+          .union(violations2016DataFrameRenamedCols)
+          .union(violations2017DataFrameRenamedCols)
+          .union(violations2018DataFrameRenamedCols)
+          .union(violations2019DataFrameRenamedCols))
 
       val colsToKeep = Seq(
         "summonsNumber",
@@ -64,9 +92,9 @@ object Main {
         "vehicleYear"
       )
 
-      val filteredDF = timed("Filtering only the desired columns to be used later", resultingDF.select(df1.columns.filter(colName => colsToKeep.contains(colName)).map(colName => new Column(colName)): _*))
+      val filteredDF = timed("Filtering only the desired columns to be used later", resultingDF.select(resultingDF.columns.filter(colName => colsToKeep.contains(colName)).map(colName => new Column(colName)): _*))
       val removedNullsDF = timed("Removing rows where the summons number is null", filteredDF.filter(filteredDF.col("summonsNumber").isNotNull))
-      val modifiedDF = timed("Converting the timestamp field from string to timestamp", removedNullsDF.withColumn("issueDateTemp", unix_timestamp(removedNullsDF.col("issueDate"), "yyyy-MM-dd").cast(TimestampType))
+      val modifiedDF = timed("Converting the timestamp field from string to timestamp", removedNullsDF.withColumn("issueDateTemp", unix_timestamp(removedNullsDF.col("issueDate"), "MM/dd/yyyy").cast(TimestampType))
         .drop("issueDate")
         .withColumnRenamed("issueDateTemp", "issueDate"))
 
@@ -75,6 +103,7 @@ object Main {
         .withColumn("issueMonth", month(modifiedDF.col("issueDate")))
         .withColumn("issueYear", year(modifiedDF.col("issueDate"))))
       val violations: Dataset[ParkingViolation] = addedCols.as[ParkingViolation]
+      violations.show(5000)
 
       // Split violations by year
       val violations2018 = timed("Filtering violations by year 2018", violations.filter("issueYear == 2018"))

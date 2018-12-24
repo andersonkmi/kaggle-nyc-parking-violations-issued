@@ -4,6 +4,50 @@ import org.apache.spark.sql.types._
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
 object ParkingViolationsDataHandler {
+  val Columns = Seq("Summons Number",
+    "Plate ID",
+    "Registration State",
+    "Plate Type",
+    "Issue Date",
+    "Violation Code",
+    "Vehicle Body Type",
+    "Vehicle Make",
+    "Issuing Agency",
+    "Street Code1",
+    "Street Code2",
+    "Street Code3",
+    "Vehicle Expiration Date",
+    "Violation Location",
+    "Violation Precinct",
+    "Issuer Precinct",
+    "Issuer Code",
+    "Issuer Command",
+    "Issuer Squad",
+    "Violation Time",
+    "Time First Observed",
+    "Violation County",
+    "Violation In Front Of Or Opposite",
+    "House Number",
+    "Street Name",
+    "Intersecting Street",
+    "Date First Observed",
+    "Law Section",
+    "Sub Division",
+    "Violation Legal Code",
+    "Days Parking In Effect    ",
+    "From Hours In Effect",
+    "To Hours In Effect",
+    "Vehicle Color",
+    "Unregistered Vehicle?",
+    "Vehicle Year",
+    "Meter Number",
+    "Feet From Curb",
+    "Violation Post Code",
+    "Violation Description",
+    "No Standing or Stopping Violation",
+    "Hydrant Violation",
+    "Double Parking Violation")
+
   val ColumnNames =
     Seq(
     "summonsNumber",
@@ -29,8 +73,8 @@ object ParkingViolationsDataHandler {
     "timeFirstObserved",
     "violationCounty",
     "violationInFrontOfOrOpposite",
-    "number",
-    "street",
+    "houseNumber",
+    "streetName",
     "intersectingStreet",
     "dateFirstObserved",
     "lawSection",
@@ -43,7 +87,7 @@ object ParkingViolationsDataHandler {
     "unregisteredVehicle",
     "vehicleYear",
     "meterNumber",
-    "feetFromCurbe",
+    "feetFromCurb",
     "violationPostCode",
     "violationDescription",
     "noStandingOrStoppingViolation",
@@ -51,7 +95,7 @@ object ParkingViolationsDataHandler {
     "doubleParkingViolation")
 
   def readContents(file: String, session: SparkSession): DataFrame = {
-    session.read.format("com.databricks.spark.csv").schema(getSchema(ColumnNames.toList)).option("header", "true").option("delimiter", ",").load(file)
+    session.read.format("com.databricks.spark.csv").schema(getSchema(Columns.toList)).option("header", "true").option("delimiter", ",").load(file)
   }
 
   private def getSchema(colNames: List[String]): StructType = {
@@ -92,7 +136,7 @@ object ParkingViolationsDataHandler {
     val unregisteredVehicleField = StructField(colNames(34), StringType, nullable = true)
     val vehicleYearField = StructField(colNames(35), IntegerType, nullable = true)
     val meterNumberField = StructField(colNames(36), StringType, nullable = true)
-    val feetFromCurbeField = StructField(colNames(37), IntegerType, nullable = true)
+    val feetFromCurbField = StructField(colNames(37), IntegerType, nullable = true)
     val violationPostCodeField = StructField(colNames(38), StringType, nullable = true)
     val violationDescriptionField = StructField(colNames(39), StringType, nullable = true)
     val noStandingOrStoppingViolationField = StructField(colNames(40), StringType, nullable = true)
@@ -137,7 +181,7 @@ object ParkingViolationsDataHandler {
       unregisteredVehicleField,
       vehicleYearField,
       meterNumberField,
-      feetFromCurbeField,
+      feetFromCurbField,
       violationPostCodeField,
       violationDescriptionField,
       noStandingOrStoppingViolationField,

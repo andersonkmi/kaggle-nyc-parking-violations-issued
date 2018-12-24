@@ -1,6 +1,5 @@
 package org.codecraftlabs.nyc
 
-import org.apache.log4j.Level.OFF
 import org.apache.log4j.Logger
 import org.apache.spark.sql.types.{IntegerType, TimestampType}
 import org.apache.spark.sql.{Column, Dataset, SparkSession}
@@ -89,6 +88,7 @@ object Main {
         "issuingAgency",
         "vehicleColor",
         "violationTime",
+        "violationDescription",
         "vehicleYear"
       )
 
@@ -102,7 +102,11 @@ object Main {
         .withColumn("issueDayMonth", dayofmonth(modifiedDF.col("issueDate")))
         .withColumn("issueMonth", month(modifiedDF.col("issueDate")))
         .withColumn("issueYear", year(modifiedDF.col("issueDate"))))
-      val violations: Dataset[ParkingViolation] = addedCols.as[ParkingViolation]
+
+      val colsForNullHandling = Seq("violationDescription")
+      val naHandledDF = addedCols.na.fill("NA", colsForNullHandling)
+
+      val violations: Dataset[ParkingViolation] = naHandledDF.as[ParkingViolation]
       violations.show(5000)
 
       // Split violations by year

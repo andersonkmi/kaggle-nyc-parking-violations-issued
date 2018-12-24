@@ -18,4 +18,8 @@ object DataTransformationUtil {
   def filterByYear(ds: Dataset[ParkingViolation], year: Int, sparkSession: SparkSession): Dataset[ParkingViolation] = {
     ds.filter(s"issueYear == $year")
   }
+
+  def filterByYears(ds: Dataset[ParkingViolation], startYear: Int, endYear: Int, sparkSession: SparkSession): Dataset[ParkingViolation] = {
+    ds.filter(ds.col("issueYear").geq(startYear)).filter(ds.col("issueYear").leq(endYear))
+  }
 }

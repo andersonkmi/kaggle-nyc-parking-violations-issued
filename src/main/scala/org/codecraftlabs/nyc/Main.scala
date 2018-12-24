@@ -6,7 +6,7 @@ import org.apache.spark.sql.{Column, Dataset, SparkSession}
 import org.codecraftlabs.nyc.ParkingViolationsDataHandler.{ColumnNames, readContents, readPlatesContent, readStatesContent}
 import org.codecraftlabs.nyc.data.{ParkingViolation, PlateType, State, ViolationCode}
 import org.apache.spark.sql.functions._
-import org.codecraftlabs.nyc.DataTransformationUtil.{filterByYear, getCountByPlateType}
+import org.codecraftlabs.nyc.DataTransformationUtil.{filterByYear, filterByYears, getCountByPlateType}
 import org.codecraftlabs.nyc.utils.ArgsUtils.parseArgs
 import org.codecraftlabs.nyc.utils.Timer.{timed, timing}
 import org.codecraftlabs.nyc.utils.NYCOpenDataUtils.getViolationCodeJsonArray
@@ -94,10 +94,11 @@ object Main {
       val violations2015 = timed("Filtering violations by year 2015", filterByYear(violations, 2015, sparkSession))
       val violations2014 = timed("Filtering violations by year 2014", filterByYear(violations, 2014, sparkSession))
 
+      val violationsLast3Years = timed("Filtering violations last 3 years", filterByYears(violations, 2017, 2019, sparkSession))
 
       // Counting violations per plate type
       val byPlateType = timed("Counting violations by plate type", getCountByPlateType(violations, plateTypeDS, sparkSession))
-      val byPlateTypeSorted = byPlateType.sort(byPlateType.col("count"))
+      val byPlateTypeSorted = byPlateType.sort(desc("count"))
       byPlateTypeSorted.show(100)
       byPlateTypeSorted.coalesce(1).write.mode("overwrite").json("violation_by_plate_type_all.json")
 

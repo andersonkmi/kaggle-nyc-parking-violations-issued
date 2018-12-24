@@ -55,7 +55,7 @@ case class ParkingViolation(summonsNumber: Long,
                             issueMonth: Int,
                             issueYear: Int)
 
-case class ByPlateTypeCount(plateType: String, count: Long)
+case class ByPlateTypeCount(plateType: String, count: BigInt)
 
 case class PlateType(plateType: String, description: String)
 

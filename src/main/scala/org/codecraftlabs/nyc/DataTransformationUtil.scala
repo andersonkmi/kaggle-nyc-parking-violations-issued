@@ -14,9 +14,7 @@ object DataTransformationUtil {
     val plateDF = plateTypeDS.toDF()
     val resultingDF = df.join(plateDF, Seq("plateType"))
     val finalDF = resultingDF.drop("plateType").toDF(colNames: _*)
-    val columns: Array[String] = Array("plateType, count")
-    val reorderedDF = finalDF.select(columns.head, columns.tail: _*)
-    reorderedDF.as[ByPlateTypeCount]
+    finalDF.as[ByPlateTypeCount]
   }
 
   def filterByYear(ds: Dataset[ParkingViolation], year: Int, sparkSession: SparkSession): Dataset[ParkingViolation] = {

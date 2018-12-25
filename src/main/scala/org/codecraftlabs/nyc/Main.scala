@@ -6,7 +6,8 @@ import org.apache.spark.sql.{Column, Dataset, SparkSession}
 import org.codecraftlabs.nyc.ParkingViolationsDataHandler.{ColumnNames, readContents, readPlatesContent, readStatesContent}
 import org.codecraftlabs.nyc.data.{ParkingViolation, PlateType, State, ViolationCode}
 import org.apache.spark.sql.functions._
-import org.codecraftlabs.nyc.DataTransformationUtil.{filterByYear, filterByYears, getCountByPlateType}
+import org.apache.spark.storage.StorageLevel
+import org.codecraftlabs.nyc.DataTransformationUtil.{countViolationsByPlateType, countViolationsByState, filterByYear, filterByYears}
 import org.codecraftlabs.nyc.utils.ArgsUtils.parseArgs
 import org.codecraftlabs.nyc.utils.Timer.{timed, timing}
 import org.codecraftlabs.nyc.utils.NYCOpenDataUtils.getViolationCodeJsonArray
@@ -84,6 +85,7 @@ object Main {
       val naHandledDF = addedCols.na.fill("NA", colsForNullHandling)
 
       val violations: Dataset[ParkingViolation] = naHandledDF.as[ParkingViolation]
+      //violations.cache()
       violations.show(5000)
 
       // Split violations by year
@@ -97,10 +99,16 @@ object Main {
       val violationsLast3Years = timed("Filtering violations last 3 years", filterByYears(violations, 2017, 2019, sparkSession))
 
       // Counting violations per plate type
-      val byPlateType = timed("Counting violations by plate type", getCountByPlateType(violations, plateTypeDS, sparkSession))
+      val byPlateType = timed("Counting violations by plate type", countViolationsByPlateType(violations, plateTypeDS, sparkSession))
       val byPlateTypeSorted = byPlateType.sort(desc("count"))
       byPlateTypeSorted.show(100)
       byPlateTypeSorted.coalesce(1).write.mode("overwrite").json("violation_by_plate_type_all.json")
+
+      // Count violations by plate registration
+      val violationCountByState = timed("Counting violations by registration state", countViolationsByState(violations, stateDS, sparkSession))
+      val sortedViolationCountByState = violationCountByState.sort(desc("count"))
+      sortedViolationCountByState.show(200)
+      sortedViolationCountByState.coalesce(1).write.mode("overwrite").json("violation_count_by_registration_state.json")
 
       println(timing)
     } else {

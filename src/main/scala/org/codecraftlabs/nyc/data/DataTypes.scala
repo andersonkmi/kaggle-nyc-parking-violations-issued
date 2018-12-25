@@ -64,3 +64,5 @@ case class State(code: String, state: String)
 case class ViolationCodeJson (all_other_areas: String, code: String, definition: String, manhattan_96th_st_below: String)
 
 case class ViolationCode (code: Int, definition: String)
+
+case class ViolationCountByState(state: String, count: Long)

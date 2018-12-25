@@ -1,18 +1,22 @@
 package org.codecraftlabs.nyc
 
-import org.apache.log4j.Logger
-import org.apache.spark.sql.{Dataset, SparkSession}
-import org.codecraftlabs.nyc.data.{ByPlateTypeCount, ParkingViolation, PlateType}
+import org.apache.spark.sql.{DataFrame, Dataset, SparkSession}
+import org.codecraftlabs.nyc.data._
 
 object DataTransformationUtil {
-  @transient lazy val logger = Logger.getLogger(getClass.getName)
-
-  def getCountByPlateType(ds: Dataset[ParkingViolation], plateTypeDS: Dataset[PlateType], sparkSession: SparkSession): Dataset[ByPlateTypeCount] = {
+  def countViolationsByPlateType(ds: Dataset[ParkingViolation], plateTypeDS: Dataset[PlateType], sparkSession: SparkSession): Dataset[ByPlateTypeCount] = {
     import sparkSession.implicits._
     val joinedDS = ds.join(plateTypeDS, Seq("plateType"))
     val df = joinedDS.groupBy("description").count()
     val renamedDF = df.toDF(Seq("plateType", "count"): _*)
     renamedDF.as[ByPlateTypeCount]
+  }
+
+  def countViolationsByState(ds: Dataset[ParkingViolation], stateDS: Dataset[State], sparkSession: SparkSession): Dataset[ViolationCountByState] = {
+    import sparkSession.implicits._
+    val joinDS = ds.join(stateDS, ds.col("registrationState") === stateDS.col("code"), "inner")
+    val df = joinDS.groupBy("state").count()
+    df.as[ViolationCountByState]
   }
 
   def filterByYear(ds: Dataset[ParkingViolation], year: Int, sparkSession: SparkSession): Dataset[ParkingViolation] = {

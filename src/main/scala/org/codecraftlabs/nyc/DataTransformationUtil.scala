@@ -1,6 +1,6 @@
 package org.codecraftlabs.nyc
 
-import org.apache.spark.sql.{DataFrame, Dataset, SparkSession}
+import org.apache.spark.sql.{Dataset, SparkSession}
 import org.codecraftlabs.nyc.data._
 
 object DataTransformationUtil {
@@ -17,6 +17,12 @@ object DataTransformationUtil {
     val joinDS = ds.join(stateDS, ds.col("registrationState") === stateDS.col("code"), "inner")
     val df = joinDS.groupBy("state").count()
     df.as[ViolationCountByState]
+  }
+
+  def countViolationsByYear(ds: Dataset[ParkingViolation], sparkSession: SparkSession): Dataset[ViolationCountByYear] = {
+    import sparkSession.implicits._
+    val df = ds.groupBy("issueYear").count()
+    df.as[ViolationCountByYear]
   }
 
   def filterByYear(ds: Dataset[ParkingViolation], year: Int, sparkSession: SparkSession): Dataset[ParkingViolation] = {

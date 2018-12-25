@@ -6,8 +6,7 @@ import org.apache.spark.sql.{Column, Dataset, SparkSession}
 import org.codecraftlabs.nyc.ParkingViolationsDataHandler.{ColumnNames, readContents, readPlatesContent, readStatesContent}
 import org.codecraftlabs.nyc.data.{ParkingViolation, PlateType, State, ViolationCode}
 import org.apache.spark.sql.functions._
-import org.apache.spark.storage.StorageLevel
-import org.codecraftlabs.nyc.DataTransformationUtil.{countViolationsByPlateType, countViolationsByState, filterByYear, filterByYears}
+import org.codecraftlabs.nyc.DataTransformationUtil.{countViolationsByYear, countViolationsByPlateType, countViolationsByState, filterByYear, filterByYears}
 import org.codecraftlabs.nyc.utils.ArgsUtils.parseArgs
 import org.codecraftlabs.nyc.utils.Timer.{timed, timing}
 import org.codecraftlabs.nyc.utils.NYCOpenDataUtils.getViolationCodeJsonArray
@@ -109,6 +108,12 @@ object Main {
       val sortedViolationCountByState = violationCountByState.sort(desc("count"))
       sortedViolationCountByState.show(200)
       sortedViolationCountByState.coalesce(1).write.mode("overwrite").json("violation_count_by_registration_state.json")
+
+      // Count violations by year
+      val violationsByYear = timed("Counting violations by year", countViolationsByYear(violations, sparkSession))
+      val sortedViolationCountByYear = violationsByYear.sort(desc("issueYear"))
+      sortedViolationCountByYear.show(200)
+      sortedViolationCountByYear.coalesce(1).write.mode("overwrite").json("violation_count_by_year.json")
 
       println(timing)
     } else {

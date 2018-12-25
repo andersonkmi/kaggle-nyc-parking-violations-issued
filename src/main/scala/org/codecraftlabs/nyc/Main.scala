@@ -34,7 +34,6 @@ object Main {
 
   def main(args: Array[String]): Unit = {
     @transient lazy val logger = Logger.getLogger(getClass.getName)
-    //Logger.getLogger("org.apache").setLevel(OFF)
 
     if (args.nonEmpty) {
       logger.info("Processing Kaggle NYC Parking violations data set")

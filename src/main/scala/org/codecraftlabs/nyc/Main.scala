@@ -7,8 +7,8 @@ import org.codecraftlabs.nyc.ParkingViolationsDataHandler.{ColumnNames, readCont
 import org.codecraftlabs.nyc.data.{ParkingViolation, PlateType, State, ViolationCode}
 import org.apache.spark.sql.functions._
 import org.codecraftlabs.nyc.DataTransformationUtil.{countViolationsByYear, countViolationsByPlateType, countViolationsByState, filterByYear, filterByYears}
-import org.codecraftlabs.nyc.utils.ArgsUtils.parseArgs
-import org.codecraftlabs.nyc.utils.Timer.{timed, timing}
+import org.codecraftlabs.spark.utils.Timer._
+import org.codecraftlabs.spark.utils.ArgsUtils._
 import org.codecraftlabs.nyc.utils.NYCOpenDataUtils.getViolationCodeJsonArray
 
 object Main {

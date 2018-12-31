@@ -16,6 +16,7 @@ object Main {
   private val AppToken: String = "--app-token"
   private val CsvFolder: String = "--csv-folder"
   private val DataFolder: String = "--data-folder"
+  private val DestinationFolder: String = "--destination-folder"
 
   private val columnsToFilter = Seq(
     "summonsNumber",
@@ -43,6 +44,7 @@ object Main {
       val csvFolder = argsMap(CsvFolder)
       val dataFolder = argsMap(DataFolder)
       val appToken = argsMap(AppToken)
+      val destinationFolder = argsMap.getOrElse(DestinationFolder, ".") + "/"
 
       val sparkSession: SparkSession = SparkSession.builder.appName("kaggle-nyc-parking-violations").master("local[*]").getOrCreate()
       import sparkSession.implicits._
@@ -100,19 +102,19 @@ object Main {
       val byPlateType = timed("Counting violations by plate type", countViolationsByPlateType(violations, plateTypeDS, sparkSession))
       val byPlateTypeSorted = byPlateType.sort(desc("count"))
       byPlateTypeSorted.show(100)
-      saveDataFrameToJson(byPlateTypeSorted.toDF(), "violation_by_plate_type_all.json", 1, "overwrite", header = true)
+      saveDataFrameToJson(byPlateTypeSorted.toDF(), s"${destinationFolder}violation_by_plate_type_all.json", 1, "overwrite", header = true)
 
       // Count violations by plate registration
       val violationCountByState = timed("Counting violations by registration state", countViolationsByState(violations, stateDS, sparkSession))
       val sortedViolationCountByState = violationCountByState.sort(desc("count"))
       sortedViolationCountByState.show(200)
-      saveDataFrameToJson(sortedViolationCountByState.toDF(), "violation_count_by_registration_state.json", 1, "overwrite", header = true)
+      saveDataFrameToJson(sortedViolationCountByState.toDF(), s"${destinationFolder}violation_count_by_registration_state.json", 1, "overwrite", header = true)
 
       // Count violations by year
       val violationsByYear = timed("Counting violations by year", countViolationsByYear(violations, sparkSession))
       val sortedViolationCountByYear = violationsByYear.sort(desc("issueYear"))
       sortedViolationCountByYear.show(200)
-      saveDataFrameToJson(sortedViolationCountByYear.toDF(), "violation_count_by_year.json", 1, "overwrite", header = true)
+      saveDataFrameToJson(sortedViolationCountByYear.toDF(), s"${destinationFolder}violation_count_by_year.json", 1, "overwrite", header = true)
 
       println(timing)
     } else {

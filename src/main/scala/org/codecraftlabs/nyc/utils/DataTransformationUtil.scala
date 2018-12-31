@@ -1,4 +1,4 @@
-package org.codecraftlabs.nyc
+package org.codecraftlabs.nyc.utils
 
 import org.apache.spark.sql.{Dataset, SparkSession}
 import org.codecraftlabs.nyc.data._

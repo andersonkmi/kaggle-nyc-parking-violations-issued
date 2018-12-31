@@ -3,10 +3,10 @@ package org.codecraftlabs.nyc
 import org.apache.log4j.Logger
 import org.apache.spark.sql.types.{IntegerType, TimestampType}
 import org.apache.spark.sql.{Column, Dataset, SparkSession}
-import org.codecraftlabs.nyc.ParkingViolationsDataHandler.{ColumnNames, readContents, readPlatesContent, readStatesContent}
+import org.codecraftlabs.nyc.data.ParkingViolationsDataHandler.{ColumnNames, readContents, readPlatesContent, readStatesContent}
 import org.codecraftlabs.nyc.data.{ParkingViolation, PlateType, State, ViolationCode}
 import org.apache.spark.sql.functions._
-import org.codecraftlabs.nyc.DataTransformationUtil.{countViolationsByYear, countViolationsByPlateType, countViolationsByState, filterByYear, filterByYears}
+import org.codecraftlabs.nyc.utils.DataTransformationUtil.{countViolationsByYear, countViolationsByPlateType, countViolationsByState, filterByYear, filterByYears}
 import org.codecraftlabs.spark.utils.Timer._
 import org.codecraftlabs.spark.utils.ArgsUtils._
 import org.codecraftlabs.nyc.utils.NYCOpenDataUtils.getViolationCodeJsonArray

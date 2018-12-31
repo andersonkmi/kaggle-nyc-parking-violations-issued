@@ -1,11 +1,12 @@
 package org.codecraftlabs.nyc.utils
 
 import org.codecraftlabs.nyc.data.{ParkingViolationJson, ViolationCodeJson}
-import org.codecraftlabs.nyc.utils.RestUtils.get
+import org.codecraftlabs.spark.utils.RestUtils.get
+import org.json4s.DefaultFormats
 import org.json4s.jackson.JsonMethods.parse
 
 object NYCOpenDataUtils {
-  private implicit val formats = org.json4s.DefaultFormats
+  private implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
 
   def getViolationCodeJsonArray(appToken: String): Array[ViolationCodeJson] = {
     doGet("https://data.cityofnewyork.us/resource/dbw3-ymb4.json", appToken) match {
@@ -61,8 +62,8 @@ object NYCOpenDataUtils {
       val content = get(url, appToken)
       Some(content)
     } catch {
-      case ioe: java.io.IOException =>  None
-      case ste: java.net.SocketTimeoutException => None
+      case _: java.io.IOException =>  None
+      case _: java.net.SocketTimeoutException => None
     }
   }
 }

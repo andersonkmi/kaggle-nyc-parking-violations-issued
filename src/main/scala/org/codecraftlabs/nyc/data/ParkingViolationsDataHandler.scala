@@ -1,4 +1,4 @@
-package org.codecraftlabs.nyc
+package org.codecraftlabs.nyc.data
 
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{DataFrame, SparkSession}

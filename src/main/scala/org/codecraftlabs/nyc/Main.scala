@@ -100,19 +100,19 @@ object Main {
       val byPlateType = timed("Counting violations by plate type", countViolationsByPlateType(violations, plateTypeDS, sparkSession))
       val byPlateTypeSorted = byPlateType.sort(desc("count"))
       byPlateTypeSorted.show(100)
-      saveDataFrameToJson(byPlateTypeSorted.toDF(), "violation_by_plate_type_all.json", 1, "overwrite", true)
+      saveDataFrameToJson(byPlateTypeSorted.toDF(), "violation_by_plate_type_all.json", 1, "overwrite", header = true)
 
       // Count violations by plate registration
       val violationCountByState = timed("Counting violations by registration state", countViolationsByState(violations, stateDS, sparkSession))
       val sortedViolationCountByState = violationCountByState.sort(desc("count"))
       sortedViolationCountByState.show(200)
-      saveDataFrameToJson(sortedViolationCountByState.toDF(), "violation_count_by_registration_state.json", 1, "overwrite", true)
+      saveDataFrameToJson(sortedViolationCountByState.toDF(), "violation_count_by_registration_state.json", 1, "overwrite", header = true)
 
       // Count violations by year
       val violationsByYear = timed("Counting violations by year", countViolationsByYear(violations, sparkSession))
       val sortedViolationCountByYear = violationsByYear.sort(desc("issueYear"))
       sortedViolationCountByYear.show(200)
-      saveDataFrameToJson(sortedViolationCountByYear.toDF(), "violation_count_by_year.json", 1, "overwrite", true)
+      saveDataFrameToJson(sortedViolationCountByYear.toDF(), "violation_count_by_year.json", 1, "overwrite", header = true)
 
       println(timing)
     } else {

@@ -19,6 +19,6 @@ libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-sql" % "2.4.0",
   "org.json4s" %% "json4s-jackson" % "3.6.2",
   "org.scala-lang.modules" %% "scala-xml" % "1.1.1",
-  "org.codecraftlabs.spark" %% "spark-utils" % "1.0.1",
+  "org.codecraftlabs.spark" %% "spark-utils" % "1.0.3",
   scalaTest % Test
 )

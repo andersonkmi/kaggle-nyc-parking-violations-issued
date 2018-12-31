@@ -95,7 +95,7 @@ object ParkingViolationsDataHandler {
     "doubleParkingViolation")
 
   def readContents(file: String, session: SparkSession): DataFrame = {
-    session.read.format("com.databricks.spark.csv").schema(getSchema(Columns.toList)).option("header", "true").option("delimiter", ",").load(file)
+    session.read.format("csv").schema(getSchema(Columns.toList)).option("header", "true").option("delimiter", ",").load(file)
   }
 
   private def getSchema(colNames: List[String]): StructType = {
@@ -193,7 +193,7 @@ object ParkingViolationsDataHandler {
 
   def readPlatesContent(file: String, session: SparkSession): DataFrame = {
     val cols = List("plateType", "description")
-    session.read.format("com.databricks.spark.csv").schema(getPlatesSchema(cols)).option("header", "true").option("delimiter", ",").load(file)
+    session.read.format("csv").schema(getPlatesSchema(cols)).option("header", "true").option("delimiter", ",").load(file)
   }
 
   private def getPlatesSchema(columnNames: List[String]): StructType = {
@@ -206,7 +206,7 @@ object ParkingViolationsDataHandler {
 
   def readStatesContent(file: String, session: SparkSession): DataFrame = {
     val cols = List("code", "state")
-    session.read.format("com.databricks.spark.csv").schema(getStatesSchema(cols)).option("header", "true").option("delimiter", ",").load(file)
+    session.read.format("csv").schema(getStatesSchema(cols)).option("header", "true").option("delimiter", ",").load(file)
   }
 
   private def getStatesSchema(columnNames: List[String]): StructType = {

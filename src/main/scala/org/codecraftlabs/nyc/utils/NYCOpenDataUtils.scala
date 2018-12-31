@@ -59,7 +59,8 @@ object NYCOpenDataUtils {
 
   private def doGet(url: String, appToken: String) : Option[String] = {
     try {
-      val content = get(url, appToken)
+      val headers = Map("X-App-Token" -> appToken)
+      val content = get(url, 5000, 5000, "GET", headers)
       Some(content)
     } catch {
       case _: java.io.IOException =>  None

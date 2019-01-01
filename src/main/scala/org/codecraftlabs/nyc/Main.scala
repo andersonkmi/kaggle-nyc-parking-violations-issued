@@ -6,7 +6,7 @@ import org.apache.spark.sql.{Column, Dataset, SparkSession}
 import org.codecraftlabs.nyc.data.ParkingViolationsDataHandler.{ColumnNames, readContents, readPlatesContent, readStatesContent}
 import org.codecraftlabs.nyc.data.{ParkingViolation, PlateType, State, ViolationCode}
 import org.apache.spark.sql.functions._
-import org.codecraftlabs.nyc.utils.DataTransformationUtil.{countViolationsByYear, countViolationsByPlateType, countViolationsByState, filterByYear, filterByYears}
+import org.codecraftlabs.nyc.utils.DataTransformationUtil.{countViolationsByYear, countViolationsByPlateType, countViolationsByState, filterByYear, countViolationsByViolationCode}
 import org.codecraftlabs.spark.utils.Timer._
 import org.codecraftlabs.spark.utils.ArgsUtils._
 import org.codecraftlabs.nyc.utils.NYCOpenDataUtils.getViolationCodeJsonArray
@@ -113,6 +113,12 @@ object Main {
       val sortedViolationCountByYear = violationsByYear.sort(desc("issueYear"))
       sortedViolationCountByYear.show(200)
       saveDataFrameToJson(sortedViolationCountByYear.toDF(), s"${destinationFolder}violation_count_by_year.json", 1, "overwrite", header = true)
+
+      // Count violations by violation code
+      val violationsByCode = timed("Counting violations by violation code", countViolationsByViolationCode(violations, sparkSession))
+      val sortedViolationsByCode = violationsByCode.sort(desc("count"))
+      sortedViolationsByCode.show(50)
+      saveDatasetToJson(sortedViolationsByCode, s"${destinationFolder}violation_count_by_violation_code.json", 1, "overwrite", header = true)
 
       println(timing)
     } else {

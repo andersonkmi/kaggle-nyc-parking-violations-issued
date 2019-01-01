@@ -19,6 +19,10 @@ In this program one structure used is the data set which implies the development
 of case classes to be stored and manipulated. Therefore, all major data structures
 loaded in this program make use of case classes and data sets.
 
+Another mechanism I tried was to bulk load all violation CSVs at once instead of loading
+them individually. Since Spark provides such functionally it makes the code smaller and once
+everything was in memory I just filtered the data by year.
+
 ## Build and run locally
 
 In order to build and run locally the following commands can be used:

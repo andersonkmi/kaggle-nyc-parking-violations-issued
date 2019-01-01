@@ -67,3 +67,4 @@ case class ViolationCode (code: Int, definition: String)
 
 case class ViolationCountByState(state: String, count: Long)
 case class ViolationCountByYear(issueYear: Int, count: Long)
+case class ViolationCountByViolationCode(violationCode: Int, count: Long)

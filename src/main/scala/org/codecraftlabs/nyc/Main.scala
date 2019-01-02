@@ -6,7 +6,7 @@ import org.apache.spark.sql.{Column, Dataset, SparkSession}
 import org.codecraftlabs.nyc.data.ParkingViolationsDataHandler.{ColumnNames, readContents, readPlatesContent, readStatesContent}
 import org.codecraftlabs.nyc.data.{ParkingViolation, PlateType, State, ViolationCode}
 import org.apache.spark.sql.functions._
-import org.codecraftlabs.nyc.utils.DataTransformationUtil.{countViolationsByYear, countViolationsByPlateType, countViolationsByState, filterByYear, countViolationsByViolationCode}
+import org.codecraftlabs.nyc.utils.DataTransformationUtil.{countViolationsByYear, countViolationsByPlateType, countViolationsByState, filterByYear, countViolationsByViolationCode, countViolationsByViolationDefinition}
 import org.codecraftlabs.spark.utils.Timer._
 import org.codecraftlabs.spark.utils.ArgsUtils._
 import org.codecraftlabs.nyc.utils.NYCOpenDataUtils.getViolationCodeJsonArray
@@ -53,7 +53,7 @@ object Main {
       val violationCodesJsonArray = timed("Retrieving violation codes from NYC open data API", getViolationCodeJsonArray(appToken))
       val violationCodesDF = timed("Creating a data frame from the JSON array", sparkSession.createDataFrame(violationCodesJsonArray))
       val violationCodeModDF = timed("Converting code column from string to int", violationCodesDF.withColumn("violationCodeNumber", violationCodesDF.col("code").cast(IntegerType)).drop("code").drop("all_other_areas").drop("manhattan_96th_st_below").withColumnRenamed("violationCodeNumber", "code"))
-      val violationCodeDS : Dataset[ViolationCode] = timed("Creating a dataset from the data frame", violationCodeModDF.as[ViolationCode])
+      val violationCodeDS : Dataset[ViolationCode] = timed("Creating a data set from the data frame", violationCodeModDF.as[ViolationCode])
       violationCodeDS.show(10)
 
       logger.info("Loading plates.csv data set")
@@ -119,6 +119,12 @@ object Main {
       val sortedViolationsByCode = violationsByCode.sort(desc("count"))
       sortedViolationsByCode.show(50)
       saveDatasetToJson(sortedViolationsByCode, s"${destinationFolder}violation_count_by_violation_code.json", 1, "overwrite", header = true)
+
+      // Count violations by violation definition
+      val violationsByDefinition = timed("Counting violations by violation definition", countViolationsByViolationDefinition(violations, violationCodeDS, sparkSession))
+      val sortedViolationsByDefinition = violationsByDefinition.sort(desc("count"))
+      sortedViolationsByDefinition.show(50)
+      saveDatasetToJson(sortedViolationsByDefinition, s"${destinationFolder}violation_count_by_violation_definition.json", 1, "overwrite", header = true)
 
       println(timing)
     } else {

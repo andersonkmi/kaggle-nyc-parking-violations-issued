@@ -31,6 +31,14 @@ object DataTransformationUtil {
     df.as[ViolationCountByViolationCode]
   }
 
+  def countViolationsByViolationDefinition(ds: Dataset[ParkingViolation], violationDS: Dataset[ViolationCode], sparkSession: SparkSession): Dataset[ViolationCountByViolationDefinition] = {
+    import sparkSession.implicits._
+    val joinDS = ds.join(violationDS, ds.col("violationCode") === violationDS.col("code"))
+    val df = joinDS.groupBy("definition").count()
+    val renamedDF = df.toDF(Seq("definition", "count"): _*)
+    renamedDF.as[ViolationCountByViolationDefinition]
+  }
+
   def filterByYear(ds: Dataset[ParkingViolation], year: Int, sparkSession: SparkSession): Dataset[ParkingViolation] = {
     ds.filter(s"issueYear == $year")
   }

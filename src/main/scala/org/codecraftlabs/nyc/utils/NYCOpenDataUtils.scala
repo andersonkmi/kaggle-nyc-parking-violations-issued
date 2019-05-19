@@ -1,5 +1,6 @@
 package org.codecraftlabs.nyc.utils
 
+import org.codecraftlabs.nyc.data.NYCOpenDataConfig._
 import org.codecraftlabs.nyc.data.{ParkingViolationJson, ViolationCodeJson}
 import org.codecraftlabs.spark.utils.RestUtils.get
 import org.json4s.DefaultFormats
@@ -9,49 +10,49 @@ object NYCOpenDataUtils {
   private implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
 
   def getViolationCodeJsonArray(appToken: String): Array[ViolationCodeJson] = {
-    doGet("https://data.cityofnewyork.us/resource/dbw3-ymb4.json", appToken) match {
+    doGet(ViolationCodeJsonUrl, appToken) match {
       case Some(contents) => parse(contents).extract[Array[ViolationCodeJson]]
       case None => Array()
     }
   }
 
   def getParkingViolationsFiscalYear2019(appToken: String) : Array[ParkingViolationJson] = {
-    doGet("https://data.cityofnewyork.us/resource/pvqr-7yc4.json", appToken) match {
+    doGet(ParkingViolationsFy2019, appToken) match {
       case Some(contents) => parse(contents).extract[Array[ParkingViolationJson]]
       case None => Array()
     }
   }
 
   def getParkingViolationsFiscalYear2018(appToken: String) : Array[ParkingViolationJson] = {
-    doGet("https://data.cityofnewyork.us/resource/9wgk-ev5c.json", appToken) match {
+    doGet(ParkingViolationsFy2018, appToken) match {
       case Some(contents) => parse(contents).extract[Array[ParkingViolationJson]]
       case None => Array()
     }
   }
 
   def getParkingViolationsFiscalYear2017(appToken: String) : Array[ParkingViolationJson] = {
-    doGet("https://data.cityofnewyork.us/resource/ati4-9cgt.json", appToken) match {
+    doGet(ParkingViolationsFy2017, appToken) match {
       case Some(contents) => parse(contents).extract[Array[ParkingViolationJson]]
       case None => Array()
     }
   }
 
   def getParkingViolationsFiscalYear2016(appToken: String) : Array[ParkingViolationJson] = {
-    doGet("https://data.cityofnewyork.us/resource/avxe-2nrn.json", appToken) match {
+    doGet(ParkingViolationsFy2016, appToken) match {
       case Some(contents) => parse(contents).extract[Array[ParkingViolationJson]]
       case None => Array()
     }
   }
 
   def getParkingViolationsFiscalYear2015(appToken: String) : Array[ParkingViolationJson] = {
-    doGet("https://data.cityofnewyork.us/resource/aagd-wyjz.json", appToken) match {
+    doGet(ParkingViolationsFy2015, appToken) match {
       case Some(contents) => parse(contents).extract[Array[ParkingViolationJson]]
       case None => Array()
     }
   }
 
   def getParkingViolationsFiscalYear2014(appToken: String) : Array[ParkingViolationJson] = {
-    doGet("https://data.cityofnewyork.us/resource/j7ig-zgkq.json", appToken) match {
+    doGet(ParkingViolationsFy2014, appToken) match {
       case Some(contents) => parse(contents).extract[Array[ParkingViolationJson]]
       case None => Array()
     }
@@ -60,7 +61,7 @@ object NYCOpenDataUtils {
   private def doGet(url: String, appToken: String) : Option[String] = {
     try {
       val headers = Map("X-App-Token" -> appToken)
-      val content = get(url, 5000, 5000, "GET", headers)
+      val content = get(url, ConnectionTimeout, ReadTimeout, RequestMethod, headers)
       Some(content)
     } catch {
       case _: java.io.IOException =>  None

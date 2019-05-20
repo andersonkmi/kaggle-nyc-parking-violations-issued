@@ -133,6 +133,11 @@ object Main {
       violationsByPlateTypeFY2019Sorted.show(100)
       saveDataFrameToJson(violationsByPlateTypeFY2019Sorted.toDF(), s"${destinationFolder}violation_by_plate_type_fy2019.json", 1, "overwrite", header = true)
 
+      // Count violations by plate registration for FY2019
+      val violationCountByStateFY2019 = timed("Counting violations by registration state - FY2019", countViolationsByState(violations2019, stateDS, sparkSession))
+      val sortedViolationCountByStateFY2019 = violationCountByStateFY2019.sort(desc("count"))
+      sortedViolationCountByStateFY2019.show(100)
+      saveDataFrameToJson(sortedViolationCountByStateFY2019.toDF(), s"${destinationFolder}violation_count_by_registration_state_fy2019.json", 1, "overwrite", header = true)
 
       println(timing)
     } else {

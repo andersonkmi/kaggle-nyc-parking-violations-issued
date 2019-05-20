@@ -126,6 +126,14 @@ object Main {
       sortedViolationsByDefinition.show(50)
       saveDatasetToJson(sortedViolationsByDefinition, s"${destinationFolder}violation_count_by_violation_definition.json", 1, "overwrite", header = true)
 
+
+      // Count violations per plate type for FY2019
+      val violationsByPlateTypeFY2019 = timed("Counting violations by plate type - FY2019", countViolationsByPlateType(violations2019, plateTypeDS, sparkSession))
+      val violationsByPlateTypeFY2019Sorted = violationsByPlateTypeFY2019.sort(desc("count"))
+      violationsByPlateTypeFY2019Sorted.show(100)
+      saveDataFrameToJson(violationsByPlateTypeFY2019Sorted.toDF(), s"${destinationFolder}violation_by_plate_type_fy2019.json", 1, "overwrite", header = true)
+
+
       println(timing)
     } else {
       println("Missing arguments.")

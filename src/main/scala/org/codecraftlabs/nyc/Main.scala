@@ -86,11 +86,15 @@ object Main {
       val naHandledDF = addedCols.na.fill("NA", colsForNullHandling)
 
       val violations: Dataset[ParkingViolation] = naHandledDF.as[ParkingViolation]
-      violations.show(5000)
+      violations.show(100)
+      violations.persist()
 
       // Split violations by year
       val violations2019 = timed("Filtering violations by year 2019", filterByYear(violations, 2019, sparkSession))
+      violations2019.persist()
       val violations2018 = timed("Filtering violations by year 2018", filterByYear(violations, 2018, sparkSession))
+      violations2018.persist()
+
       val violations2017 = timed("Filtering violations by year 2017", filterByYear(violations, 2017, sparkSession))
       val violations2016 = timed("Filtering violations by year 2016", filterByYear(violations, 2016, sparkSession))
       val violations2015 = timed("Filtering violations by year 2015", filterByYear(violations, 2015, sparkSession))
@@ -144,6 +148,25 @@ object Main {
       val sortedViolationsByDefinitionFY2019 = violationsByDefinitionFY2019.sort(desc("count"))
       sortedViolationsByDefinitionFY2019.show(50)
       saveDatasetToJson(sortedViolationsByDefinitionFY2019, s"${destinationFolder}violation_count_by_violation_definition_fy2019.json", 1, "overwrite", header = true)
+
+
+      // Count violations per plate type for FY2018
+      val violationsByPlateTypeFY2018 = timed("Counting violations by plate type - FY2018", countViolationsByPlateType(violations2018, plateTypeDS, sparkSession))
+      val violationsByPlateTypeFY2018Sorted = violationsByPlateTypeFY2018.sort(desc("count"))
+      violationsByPlateTypeFY2018Sorted.show(100)
+      saveDataFrameToJson(violationsByPlateTypeFY2018Sorted.toDF(), s"${destinationFolder}violation_by_plate_type_fy2018.json", 1, "overwrite", header = true)
+
+      // Count violations by plate registration for FY2018
+      val violationCountByStateFY2018 = timed("Counting violations by registration state - FY2018", countViolationsByState(violations2018, stateDS, sparkSession))
+      val sortedViolationCountByStateFY2018 = violationCountByStateFY2018.sort(desc("count"))
+      sortedViolationCountByStateFY2018.show(100)
+      saveDataFrameToJson(sortedViolationCountByStateFY2018.toDF(), s"${destinationFolder}violation_count_by_registration_state_fy2018.json", 1, "overwrite", header = true)
+
+      // Count violations by code definition - fy2018
+      val violationsByDefinitionFY2018 = timed("Counting violations by violation definition", countViolationsByViolationDefinition(violations2018, violationCodeDS, sparkSession))
+      val sortedViolationsByDefinitionFY2018 = violationsByDefinitionFY2018.sort(desc("count"))
+      sortedViolationsByDefinitionFY2018.show(50)
+      saveDatasetToJson(sortedViolationsByDefinitionFY2018, s"${destinationFolder}violation_count_by_violation_definition_fy2018.json", 1, "overwrite", header = true)
 
       println(timing)
     } else {

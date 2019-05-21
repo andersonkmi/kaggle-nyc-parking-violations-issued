@@ -139,6 +139,12 @@ object Main {
       sortedViolationCountByStateFY2019.show(100)
       saveDataFrameToJson(sortedViolationCountByStateFY2019.toDF(), s"${destinationFolder}violation_count_by_registration_state_fy2019.json", 1, "overwrite", header = true)
 
+      // Count violations by code definition - fy2019
+      val violationsByDefinitionFY2019 = timed("Counting violations by violation definition", countViolationsByViolationDefinition(violations2019, violationCodeDS, sparkSession))
+      val sortedViolationsByDefinitionFY2019 = violationsByDefinitionFY2019.sort(desc("count"))
+      sortedViolationsByDefinitionFY2019.show(50)
+      saveDatasetToJson(sortedViolationsByDefinitionFY2019, s"${destinationFolder}violation_count_by_violation_definition_fy2019.json", 1, "overwrite", header = true)
+
       println(timing)
     } else {
       println("Missing arguments.")

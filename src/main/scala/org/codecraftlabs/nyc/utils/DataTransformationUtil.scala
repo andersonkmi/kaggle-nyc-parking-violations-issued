@@ -25,6 +25,8 @@ object DataTransformationUtil {
     df.as[ViolationCountByYear]
   }
 
+  def filterViolationsFromYears(start: Int, end: Int, ds: Dataset[ViolationCountByYear]): Dataset[ViolationCountByYear] = ???
+
   def countViolationsByViolationCode(ds: Dataset[ParkingViolation], sparkSession: SparkSession): Dataset[ViolationCountByViolationCode] = {
     import sparkSession.implicits._
     val df = ds.groupBy("violationCode").count()

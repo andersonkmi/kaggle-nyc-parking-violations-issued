@@ -66,6 +66,6 @@ case class ViolationCodeJson (all_other_areas: String, code: String, definition:
 case class ViolationCode (code: Int, definition: String)
 
 case class ViolationCountByState(state: String, count: Long)
-case class ViolationCountByYear(issueYear: Int, count: Long)
+case class ViolationCountByYear(issueYear: Option[Int], count: Long)
 case class ViolationCountByViolationCode(violationCode: Int, count: Long)
 case class ViolationCountByViolationDefinition(definition: String, count: Long)

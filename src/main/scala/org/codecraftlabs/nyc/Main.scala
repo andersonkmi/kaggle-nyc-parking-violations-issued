@@ -5,8 +5,9 @@ import org.apache.spark.sql.types.{IntegerType, TimestampType}
 import org.apache.spark.sql.{Column, Dataset, SparkSession}
 import org.codecraftlabs.nyc.data.ParkingViolationsDataHandler.{ColumnNames, readContents, readPlatesContent, readStatesContent}
 import org.codecraftlabs.nyc.data.{ParkingViolation, PlateType, State, ViolationCode}
+import org.codecraftlabs.nyc.data.ParkingViolationsDataHandler._
 import org.apache.spark.sql.functions._
-import org.codecraftlabs.nyc.utils.DataTransformationUtil.{countViolationsByYear, countViolationsByPlateType, countViolationsByState, filterByYear, countViolationsByViolationCode, countViolationsByViolationDefinition}
+import org.codecraftlabs.nyc.utils.DataTransformationUtil.{countViolationsByPlateType, countViolationsByState, countViolationsByViolationCode, countViolationsByViolationDefinition, countViolationsByYear, filterByYear}
 import org.codecraftlabs.spark.utils.Timer._
 import org.codecraftlabs.spark.utils.ArgsUtils._
 import org.codecraftlabs.nyc.utils.NYCOpenDataUtils.getViolationCodeJsonArray
@@ -18,21 +19,6 @@ object Main {
   private val DataFolder: String = "--data-folder"
   private val DestinationFolder: String = "--destination-folder"
 
-  private val columnsToFilter = Seq(
-    "summonsNumber",
-    "plateId",
-    "registrationState",
-    "plateType",
-    "issueDate",
-    "violationCode",
-    "vehicleBodyType",
-    "vehicleMake",
-    "issuingAgency",
-    "vehicleColor",
-    "violationTime",
-    "violationDescription",
-    "vehicleYear"
-  )
 
   def main(args: Array[String]): Unit = {
     @transient lazy val logger = Logger.getLogger(getClass.getName)
@@ -72,7 +58,7 @@ object Main {
       val resultingDF = violationsDataFrame.toDF(ColumnNames: _*)
 
       logger.info("Filtering only columns to be used")
-      val filteredDF = timed("Filtering only the desired columns to be used later", resultingDF.select(resultingDF.columns.filter(colName => columnsToFilter.contains(colName)).map(colName => new Column(colName)): _*))
+      val filteredDF = timed("Filtering only the desired columns to be used later", resultingDF.select(resultingDF.columns.filter(colName => ColumnsToFilter.contains(colName)).map(colName => new Column(colName)): _*))
       val removedNullsDF = timed("Removing rows where the summons number is null", filteredDF.filter(filteredDF.col("summonsNumber").isNotNull))
       val modifiedDF = timed("Converting the timestamp field from string to timestamp", removedNullsDF.withColumn("issueDateTemp", unix_timestamp(removedNullsDF.col("issueDate"), "MM/dd/yyyy").cast(TimestampType))
         .drop("issueDate")

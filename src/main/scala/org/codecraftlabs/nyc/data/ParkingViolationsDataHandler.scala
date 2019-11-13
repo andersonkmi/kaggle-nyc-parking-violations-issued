@@ -4,7 +4,7 @@ import org.apache.spark.sql.types._
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
 object ParkingViolationsDataHandler {
-  val ColumnsToFilter = Seq(
+  val ColumnsToFilter: Seq[String] = Seq(
     "summonsNumber",
     "plateId",
     "registrationState",
@@ -20,7 +20,7 @@ object ParkingViolationsDataHandler {
     "vehicleYear"
   )
 
-  val Columns = Seq("Summons Number",
+  val Columns: Seq[String] = Seq("Summons Number",
     "Plate ID",
     "Registration State",
     "Plate Type",
@@ -64,7 +64,7 @@ object ParkingViolationsDataHandler {
     "Hydrant Violation",
     "Double Parking Violation")
 
-  val ColumnNames =
+  val ColumnNames: Seq[String] =
     Seq(
     "summonsNumber",
     "plateId",

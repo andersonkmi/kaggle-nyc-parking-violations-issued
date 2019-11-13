@@ -2,11 +2,11 @@ import Dependencies._
 
 organization := "org.codecraftlabs.spark"
 
-name := "kaggle-nyc-parking-violations-issued"
+name := "kaggle-nyc-parking-violations"
 
-val appVersion = "1.0.0.0"
+val appVersion = "1.0.0"
 
-val appName = "kaggle-nyc-parking-violations-issued"
+val appName = "kaggle-nyc-parking-violations"
 
 version := appVersion
 

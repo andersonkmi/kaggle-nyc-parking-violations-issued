@@ -104,10 +104,10 @@ object Main {
       saveDataFrameToJson(sortedViolationCountByState.toDF(), s"${destinationFolder}violation_count_by_registration_state.json", 1, "overwrite", header = true)
 
       // Count violations by year
-      //val violationsByYear = timed("Counting violations by year", countViolationsByYear(violations, sparkSession))
-      //val sortedViolationCountByYear = violationsByYear.sort(desc("issueYear"))
-      //val filteredYears = filterViolationsFromYears(2014, 2019, sortedViolationCountByYear)
-      //saveDataFrameToJson(filteredYears.toDF(), s"${destinationFolder}violation_count_by_year.json", 1, "overwrite", header = true)
+      val violationsByYear = timed("Counting violations by year", countViolationsByYear(violations, sparkSession))
+      val sortedViolationCountByYear = violationsByYear.sort(desc("issueYear"))
+      val filteredYears = filterViolationsFromYears(2014, 2019, sortedViolationCountByYear)
+      saveDataFrameToJson(filteredYears.toDF(), s"${destinationFolder}violation_count_by_year.json", 1, "overwrite", header = true)
 
       // Count violations by violation code
       val violationsByCode = timed("Counting violations by violation code", countViolationsByViolationCode(violations, sparkSession))

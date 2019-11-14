@@ -25,7 +25,9 @@ object DataTransformationUtil {
     df.as[ViolationCountByYear]
   }
 
-  def filterViolationsFromYears(start: Int, end: Int, ds: Dataset[ViolationCountByYear]): Dataset[ViolationCountByYear] = ???
+  def filterViolationsFromYears(start: Int, end: Int, ds: Dataset[ViolationCountByYear]): Dataset[ViolationCountByYear] = {
+    ds.filter(item => item.issueYear.getOrElse(0) >= start && item.issueYear.getOrElse(0) <= end)
+  }
 
   def countViolationsByViolationCode(ds: Dataset[ParkingViolation], sparkSession: SparkSession): Dataset[ViolationCountByViolationCode] = {
     import sparkSession.implicits._

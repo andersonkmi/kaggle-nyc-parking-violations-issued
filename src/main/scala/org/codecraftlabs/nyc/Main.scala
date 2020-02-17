@@ -1,17 +1,17 @@
 package org.codecraftlabs.nyc
 
 import org.apache.log4j.Logger
+import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.{IntegerType, TimestampType}
 import org.apache.spark.sql.{Column, Dataset, SparkSession}
-import org.codecraftlabs.nyc.data.ParkingViolationsDataHandler.{ColumnNames, readContents, readPlatesContent, readStatesContent}
+import org.codecraftlabs.nyc.data.ParkingViolationsDataHandler.{ColumnNames, readContents, readPlatesContent, readStatesContent, _}
 import org.codecraftlabs.nyc.data.{ParkingViolation, PlateType, State, ViolationCode}
-import org.codecraftlabs.nyc.data.ParkingViolationsDataHandler._
-import org.apache.spark.sql.functions._
-import org.codecraftlabs.nyc.utils.DataTransformationUtil.{countViolationsByPlateType, countViolationsByState, countViolationsByViolationCode, countViolationsByViolationDefinition, countViolationsByYear, filterByYear, filterViolationsFromYears}
-import org.codecraftlabs.spark.utils.Timer._
-import org.codecraftlabs.spark.utils.ArgsUtils._
+import org.codecraftlabs.nyc.utils.DataTransformationUtil._
 import org.codecraftlabs.nyc.utils.NYCOpenDataUtils.getViolationCodeJsonArray
-import org.codecraftlabs.spark.utils.DataUtils._
+import org.codecraftlabs.spark.utils.ArgsUtils._
+import org.codecraftlabs.spark.utils.DataFrameUtil.saveDataFrameToJson
+import org.codecraftlabs.spark.utils.DataSetUtil.saveDataSetToJson
+import org.codecraftlabs.spark.utils.Timer._
 
 object Main {
   private val AppToken: String = "--app-token"
@@ -98,118 +98,118 @@ object Main {
       // Counting violations per plate type
       val byPlateType = timed("Counting violations by plate type", countViolationsByPlateType(violations, plateTypeDS, sparkSession))
       val byPlateTypeSorted = byPlateType.sort(desc("count"))
-      saveDataFrameToJson(byPlateTypeSorted.toDF(), s"${destinationFolder}violation_by_plate_type_all.json", partitions, "overwrite", header = true)
+      saveDataFrameToJson(byPlateTypeSorted.toDF(), s"${destinationFolder}violation_by_plate_type_all.json", partitions)
 
       // Count violations by plate registration
       val violationCountByState = timed("Counting violations by registration state", countViolationsByState(violations, stateDS, sparkSession))
       val sortedViolationCountByState = violationCountByState.sort(desc("count"))
-      saveDataFrameToJson(sortedViolationCountByState.toDF(), s"${destinationFolder}violation_count_by_registration_state.json", partitions, "overwrite", header = true)
+      saveDataFrameToJson(sortedViolationCountByState.toDF(), s"${destinationFolder}violation_count_by_registration_state.json", partitions)
 
       // Count violations by year
       val violationsByYear = timed("Counting violations by year", countViolationsByYear(violations, sparkSession))
       val sortedViolationCountByYear = violationsByYear.sort(desc("issueYear"))
       val filteredYears = filterViolationsFromYears(2014, 2019, sortedViolationCountByYear)
-      saveDataFrameToJson(filteredYears.toDF(), s"${destinationFolder}violation_count_by_year.json", partitions, "overwrite", header = true)
+      saveDataFrameToJson(filteredYears.toDF(), s"${destinationFolder}violation_count_by_year.json", partitions)
 
       // Count violations by violation code
       val violationsByCode = timed("Counting violations by violation code", countViolationsByViolationCode(violations, sparkSession))
       val sortedViolationsByCode = violationsByCode.sort(desc("count"))
-      saveDatasetToJson(sortedViolationsByCode, s"${destinationFolder}violation_count_by_violation_code.json", partitions, "overwrite", header = true)
+      saveDataSetToJson(sortedViolationsByCode, s"${destinationFolder}violation_count_by_violation_code.json", partitions)
 
       // Count violations by violation definition
       val violationsByDefinition = timed("Counting violations by violation definition", countViolationsByViolationDefinition(violations, violationCodeDS, sparkSession))
       val sortedViolationsByDefinition = violationsByDefinition.sort(desc("count"))
-      saveDatasetToJson(sortedViolationsByDefinition, s"${destinationFolder}violation_count_by_violation_definition.json", partitions, "overwrite", header = true)
+      saveDataSetToJson(sortedViolationsByDefinition, s"${destinationFolder}violation_count_by_violation_definition.json", partitions)
 
       // Count violations per plate type for FY2019
       val violationsByPlateTypeFY2019 = timed("Counting violations by plate type - FY2019", countViolationsByPlateType(violations2019, plateTypeDS, sparkSession))
       val violationsByPlateTypeFY2019Sorted = violationsByPlateTypeFY2019.sort(desc("count"))
-      saveDataFrameToJson(violationsByPlateTypeFY2019Sorted.toDF(), s"${destinationFolder}violation_by_plate_type_fy2019.json", partitions, "overwrite", header = true)
+      saveDataFrameToJson(violationsByPlateTypeFY2019Sorted.toDF(), s"${destinationFolder}violation_by_plate_type_fy2019.json", partitions)
 
       // Count violations by plate registration for FY2019
       val violationCountByStateFY2019 = timed("Counting violations by registration state - FY2019", countViolationsByState(violations2019, stateDS, sparkSession))
       val sortedViolationCountByStateFY2019 = violationCountByStateFY2019.sort(desc("count"))
-      saveDataFrameToJson(sortedViolationCountByStateFY2019.toDF(), s"${destinationFolder}violation_count_by_registration_state_fy2019.json", partitions, "overwrite", header = true)
+      saveDataFrameToJson(sortedViolationCountByStateFY2019.toDF(), s"${destinationFolder}violation_count_by_registration_state_fy2019.json", partitions)
 
       // Count violations by code definition - fy2019
       val violationsByDefinitionFY2019 = timed("Counting violations by violation definition", countViolationsByViolationDefinition(violations2019, violationCodeDS, sparkSession))
       val sortedViolationsByDefinitionFY2019 = violationsByDefinitionFY2019.sort(desc("count"))
-      saveDatasetToJson(sortedViolationsByDefinitionFY2019, s"${destinationFolder}violation_count_by_violation_definition_fy2019.json", partitions, "overwrite", header = true)
+      saveDataSetToJson(sortedViolationsByDefinitionFY2019, s"${destinationFolder}violation_count_by_violation_definition_fy2019.json", partitions)
 
       // Count violations per plate type for FY2018
       val violationsByPlateTypeFY2018 = timed("Counting violations by plate type - FY2018", countViolationsByPlateType(violations2018, plateTypeDS, sparkSession))
       val violationsByPlateTypeFY2018Sorted = violationsByPlateTypeFY2018.sort(desc("count"))
-      saveDataFrameToJson(violationsByPlateTypeFY2018Sorted.toDF(), s"${destinationFolder}violation_by_plate_type_fy2018.json", partitions, "overwrite", header = true)
+      saveDataFrameToJson(violationsByPlateTypeFY2018Sorted.toDF(), s"${destinationFolder}violation_by_plate_type_fy2018.json", partitions)
 
       // Count violations by plate registration for FY2018
       val violationCountByStateFY2018 = timed("Counting violations by registration state - FY2018", countViolationsByState(violations2018, stateDS, sparkSession))
       val sortedViolationCountByStateFY2018 = violationCountByStateFY2018.sort(desc("count"))
-      saveDataFrameToJson(sortedViolationCountByStateFY2018.toDF(), s"${destinationFolder}violation_count_by_registration_state_fy2018.json", partitions, "overwrite", header = true)
+      saveDataFrameToJson(sortedViolationCountByStateFY2018.toDF(), s"${destinationFolder}violation_count_by_registration_state_fy2018.json", partitions)
 
       // Count violations by code definition - fy2018
       val violationsByDefinitionFY2018 = timed("Counting violations by violation definition - FY2018", countViolationsByViolationDefinition(violations2018, violationCodeDS, sparkSession))
       val sortedViolationsByDefinitionFY2018 = violationsByDefinitionFY2018.sort(desc("count"))
-      saveDatasetToJson(sortedViolationsByDefinitionFY2018, s"${destinationFolder}violation_count_by_violation_definition_fy2018.json", partitions, "overwrite", header = true)
+      saveDataSetToJson(sortedViolationsByDefinitionFY2018, s"${destinationFolder}violation_count_by_violation_definition_fy2018.json", partitions)
 
       // Count violations per plate type for FY2017
       val violationsByPlateTypeFY2017 = timed("Counting violations by plate type - FY2017", countViolationsByPlateType(violations2017, plateTypeDS, sparkSession))
       val violationsByPlateTypeFY2017Sorted = violationsByPlateTypeFY2017.sort(desc("count"))
-      saveDataFrameToJson(violationsByPlateTypeFY2017Sorted.toDF(), s"${destinationFolder}violation_by_plate_type_fy2017.json", partitions, "overwrite", header = true)
+      saveDataFrameToJson(violationsByPlateTypeFY2017Sorted.toDF(), s"${destinationFolder}violation_by_plate_type_fy2017.json", partitions)
 
       // Count violations by plate registration for FY2017
       val violationCountByStateFY2017 = timed("Counting violations by registration state - FY2017", countViolationsByState(violations2017, stateDS, sparkSession))
       val sortedViolationCountByStateFY2017 = violationCountByStateFY2017.sort(desc("count"))
-      saveDataFrameToJson(sortedViolationCountByStateFY2017.toDF(), s"${destinationFolder}violation_count_by_registration_state_fy2017.json", partitions, "overwrite", header = true)
+      saveDataFrameToJson(sortedViolationCountByStateFY2017.toDF(), s"${destinationFolder}violation_count_by_registration_state_fy2017.json", partitions)
 
       // Count violations by code definition - fy2017
       val violationsByDefinitionFY2017 = timed("Counting violations by violation definition - FY2017", countViolationsByViolationDefinition(violations2017, violationCodeDS, sparkSession))
       val sortedViolationsByDefinitionFY2017 = violationsByDefinitionFY2017.sort(desc("count"))
-      saveDatasetToJson(sortedViolationsByDefinitionFY2017, s"${destinationFolder}violation_count_by_violation_definition_fy2017.json", partitions, "overwrite", header = true)
+      saveDataSetToJson(sortedViolationsByDefinitionFY2017, s"${destinationFolder}violation_count_by_violation_definition_fy2017.json", partitions)
 
       // Count violations per plate type for FY2016
       val violationsByPlateTypeFY2016 = timed("Counting violations by plate type - FY2016", countViolationsByPlateType(violations2016, plateTypeDS, sparkSession))
       val violationsByPlateTypeFY2016Sorted = violationsByPlateTypeFY2016.sort(desc("count"))
-      saveDataFrameToJson(violationsByPlateTypeFY2016Sorted.toDF(), s"${destinationFolder}violation_by_plate_type_fy2016.json", partitions, "overwrite", header = true)
+      saveDataFrameToJson(violationsByPlateTypeFY2016Sorted.toDF(), s"${destinationFolder}violation_by_plate_type_fy2016.json", partitions)
 
       // Count violations by plate registration for FY2016
       val violationCountByStateFY2016 = timed("Counting violations by registration state - FY2016", countViolationsByState(violations2016, stateDS, sparkSession))
       val sortedViolationCountByStateFY2016 = violationCountByStateFY2016.sort(desc("count"))
-      saveDataFrameToJson(sortedViolationCountByStateFY2016.toDF(), s"${destinationFolder}violation_count_by_registration_state_fy2016.json", partitions, "overwrite", header = true)
+      saveDataFrameToJson(sortedViolationCountByStateFY2016.toDF(), s"${destinationFolder}violation_count_by_registration_state_fy2016.json", partitions)
 
       // Count violations by code definition - fy2016
       val violationsByDefinitionFY2016 = timed("Counting violations by violation definition - FY2016", countViolationsByViolationDefinition(violations2016, violationCodeDS, sparkSession))
       val sortedViolationsByDefinitionFY2016 = violationsByDefinitionFY2016.sort(desc("count"))
-      saveDatasetToJson(sortedViolationsByDefinitionFY2016, s"${destinationFolder}violation_count_by_violation_definition_fy2016.json", partitions, "overwrite", header = true)
+      saveDataSetToJson(sortedViolationsByDefinitionFY2016, s"${destinationFolder}violation_count_by_violation_definition_fy2016.json", partitions)
 
       // Count violations per plate type for FY2015
       val violationsByPlateTypeFY2015 = timed("Counting violations by plate type - FY2015", countViolationsByPlateType(violations2015, plateTypeDS, sparkSession))
       val violationsByPlateTypeFY2015Sorted = violationsByPlateTypeFY2015.sort(desc("count"))
-      saveDataFrameToJson(violationsByPlateTypeFY2015Sorted.toDF(), s"${destinationFolder}violation_by_plate_type_fy2015.json", partitions, "overwrite", header = true)
+      saveDataFrameToJson(violationsByPlateTypeFY2015Sorted.toDF(), s"${destinationFolder}violation_by_plate_type_fy2015.json", partitions)
 
       // Count violations by plate registration for FY2015
       val violationCountByStateFY2015 = timed("Counting violations by registration state - FY2015", countViolationsByState(violations2015, stateDS, sparkSession))
       val sortedViolationCountByStateFY2015 = violationCountByStateFY2015.sort(desc("count"))
-      saveDataFrameToJson(sortedViolationCountByStateFY2015.toDF(), s"${destinationFolder}violation_count_by_registration_state_fy2015.json", partitions, "overwrite", header = true)
+      saveDataFrameToJson(sortedViolationCountByStateFY2015.toDF(), s"${destinationFolder}violation_count_by_registration_state_fy2015.json", partitions)
 
       // Count violations by code definition - fy2015
       val violationsByDefinitionFY2015 = timed("Counting violations by violation definition - FY2015", countViolationsByViolationDefinition(violations2015, violationCodeDS, sparkSession))
       val sortedViolationsByDefinitionFY2015 = violationsByDefinitionFY2015.sort(desc("count"))
-      saveDatasetToJson(sortedViolationsByDefinitionFY2015, s"${destinationFolder}violation_count_by_violation_definition_fy2015.json", partitions, "overwrite", header = true)
+      saveDataSetToJson(sortedViolationsByDefinitionFY2015, s"${destinationFolder}violation_count_by_violation_definition_fy2015.json", partitions)
 
       // Count violations per plate type for FY2014
       val violationsByPlateTypeFY2014 = timed("Counting violations by plate type - FY2014", countViolationsByPlateType(violations2014, plateTypeDS, sparkSession))
       val violationsByPlateTypeFY2014Sorted = violationsByPlateTypeFY2014.sort(desc("count"))
-      saveDataFrameToJson(violationsByPlateTypeFY2014Sorted.toDF(), s"${destinationFolder}violation_by_plate_type_fy2014.json", partitions, "overwrite", header = true)
+      saveDataFrameToJson(violationsByPlateTypeFY2014Sorted.toDF(), s"${destinationFolder}violation_by_plate_type_fy2014.json", partitions)
 
       // Count violations by plate registration for FY2014
       val violationCountByStateFY2014 = timed("Counting violations by registration state - FY2014", countViolationsByState(violations2014, stateDS, sparkSession))
       val sortedViolationCountByStateFY2014 = violationCountByStateFY2014.sort(desc("count"))
-      saveDataFrameToJson(sortedViolationCountByStateFY2014.toDF(), s"${destinationFolder}violation_count_by_registration_state_fy2014.json", partitions, "overwrite", header = true)
+      saveDataFrameToJson(sortedViolationCountByStateFY2014.toDF(), s"${destinationFolder}violation_count_by_registration_state_fy2014.json", partitions)
 
       // Count violations by code definition - fy2014
       val violationsByDefinitionFY2014 = timed("Counting violations by violation definition - FY2014", countViolationsByViolationDefinition(violations2014, violationCodeDS, sparkSession))
       val sortedViolationsByDefinitionFY2014 = violationsByDefinitionFY2014.sort(desc("count"))
-      saveDatasetToJson(sortedViolationsByDefinitionFY2014, s"${destinationFolder}violation_count_by_violation_definition_fy2014.json", partitions, "overwrite", header = true)
+      saveDataSetToJson(sortedViolationsByDefinitionFY2014, s"${destinationFolder}violation_count_by_violation_definition_fy2014.json", partitions)
 
       // Prints the execution times
       println(timing)
